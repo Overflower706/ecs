@@ -51,8 +51,6 @@ Thumbs.db
 *.log
 *.tmp
 
-# Unity 메타 파일들 - Unity Package에서는 필요하므로 포함
-
 # Node.js (혹시 npm 툴 사용 시)
 node_modules/
 npm-debug.log*
