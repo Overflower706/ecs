@@ -17,7 +17,7 @@
 3. **Add package from git URL...** 선택
 4. 다음 URL 입력:
    ```
-   https://github.com/your-username/com.ovfl.ecs.git
+   https://github.com/Overflower706/ecs.git
    ```
 
 #### 방법 2: manifest.json 직접 편집
@@ -26,7 +26,7 @@
    ```json
    {
      "dependencies": {
-       "com.ovfl.ecs": "https://github.com/your-username/com.ovfl.ecs.git#v1.0.0"
+       "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git#v1.0.0"
      }
    }
    ```
@@ -35,7 +35,7 @@
 ```json
 {
   "dependencies": {
-    "com.ovfl.ecs": "https://github.com/your-username/com.ovfl.ecs.git#v1.0.0"
+    "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git#v1.0.0"
   }
 }
 ```

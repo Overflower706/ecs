@@ -1,5 +1,8 @@
 # Unity Package용 .gitignore
 
+# GitHub 폴더 (패키지에 불필요)
+.github/
+
 # Unity 임시 파일들 (혹시 테스트용 Unity 프로젝트가 생성될 경우)
 [Ll]ibrary/
 [Tt]emp/
@@ -48,8 +51,7 @@ Thumbs.db
 *.log
 *.tmp
 
-# Unity 메타 파일들 (Package에서는 불필요)
-*.meta
+# Unity 메타 파일들 - Unity Package에서는 필요하므로 포함
 
 # Node.js (혹시 npm 툴 사용 시)
 node_modules/
