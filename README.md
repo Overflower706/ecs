@@ -7,6 +7,43 @@
 - **재사용 가능한 커스텀 ECS**: 다른 프로젝트에서도 활용할 수 있는 순수한 형태의 ECS 구현
 - **학습 친화적 구조**: 개념 이해와 학습이 쉬운 명확한 ECS 아키텍처
 
+## 📦 설치 방법
+
+### Unity Package Manager로 설치
+
+#### 방법 1: Package Manager UI 사용
+1. Unity에서 **Window > Package Manager** 열기
+2. 좌상단 **+** 버튼 클릭
+3. **Add package from git URL...** 선택
+4. 다음 URL 입력:
+   ```
+   https://github.com/your-username/com.ovfl.ecs.git
+   ```
+
+#### 방법 2: manifest.json 직접 편집
+1. 프로젝트의 `Packages/manifest.json` 파일 열기
+2. dependencies 섹션에 추가:
+   ```json
+   {
+     "dependencies": {
+       "com.ovfl.ecs": "https://github.com/your-username/com.ovfl.ecs.git#v1.0.0"
+     }
+   }
+   ```
+
+#### 방법 3: 특정 버전 설치
+```json
+{
+  "dependencies": {
+    "com.ovfl.ecs": "https://github.com/your-username/com.ovfl.ecs.git#v1.0.0"
+  }
+}
+```
+
+### 요구사항
+- Unity 2020.3 LTS 이상
+- .NET Standard 2.1 호환
+
 ## 🏗️ 아키텍처
 
 ### 핵심 구성 요소
