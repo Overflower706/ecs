@@ -23,5 +23,20 @@ namespace OVFL.ECS
         {
             return _entities.AsReadOnly();
         }
+
+        public List<Entity> GetEntitiesWithComponent<T>() where T : class, IComponent
+        {
+            var result = new List<Entity>();
+
+            for (int i = 0; i < _entities.Count; i++)
+            {
+                if (_entities[i].HasComponent<T>())
+                {
+                    result.Add(_entities[i]);
+                }
+            }
+
+            return result;
+        }
     }
 }

@@ -61,6 +61,7 @@ namespace Test.OVFL.ECS
         // 테스트용 시스템들
         private class MovementSystem : ITickSystem
         {
+            public Context Context { get; set; }
             public int ProcessedEntityCount { get; private set; }
 
             public void Tick(Context context)
@@ -85,6 +86,7 @@ namespace Test.OVFL.ECS
 
         private class HealthRegenSystem : ITickSystem
         {
+            public Context Context { get; set; }
             public int ProcessedEntityCount { get; private set; }
 
             public void Tick(Context context)
@@ -106,6 +108,7 @@ namespace Test.OVFL.ECS
 
         private class InitializationSystem : ISetupSystem
         {
+            public Context Context { get; set; }
             public bool WasInitialized { get; private set; }
             public int InitializedEntityCount { get; private set; }
 
@@ -118,6 +121,7 @@ namespace Test.OVFL.ECS
 
         private class CleanupSystem : ICleanupSystem
         {
+            public Context Context { get; set; }
             public int CleanupCallCount { get; private set; }
 
             public void Cleanup(Context context)
@@ -144,6 +148,7 @@ namespace Test.OVFL.ECS
         {
             _context = new Context();
             _systems = new Systems();
+            _systems.SetContext(_context);
         }
 
         [Test]
@@ -177,7 +182,7 @@ namespace Test.OVFL.ECS
             entity.AddComponent(new VelocityComponent(2, 3));
 
             var movementSystem = new MovementSystem();
-            _systems.Add(movementSystem);
+            _systems.AddSystem(movementSystem);
 
             // Act
             _systems.Tick(_context);
@@ -204,7 +209,7 @@ namespace Test.OVFL.ECS
             entityWithBoth.AddComponent(new VelocityComponent(2, 2));
 
             var movementSystem = new MovementSystem();
-            _systems.Add(movementSystem);
+            _systems.AddSystem(movementSystem);
 
             // Act
             _systems.Tick(_context);
@@ -231,7 +236,7 @@ namespace Test.OVFL.ECS
             var movementSystem = new MovementSystem();
             var healthRegenSystem = new HealthRegenSystem();
 
-            _systems.Add(movementSystem).Add(healthRegenSystem);
+            _systems.AddSystem(movementSystem).AddSystem(healthRegenSystem);
 
             // Act
             _systems.Tick(_context);
@@ -256,9 +261,9 @@ namespace Test.OVFL.ECS
             var movementSystem = new MovementSystem();
             var cleanupSystem = new CleanupSystem();
 
-            _systems.Add(initSystem)
-                   .Add(movementSystem)
-                   .Add(cleanupSystem);
+            _systems.AddSystem(initSystem)
+                   .AddSystem(movementSystem)
+                   .AddSystem(cleanupSystem);
 
             // 여러 엔티티 생성
             var player = _context.CreateEntity();
@@ -311,7 +316,7 @@ namespace Test.OVFL.ECS
             entity2.AddComponent(new VelocityComponent(2, 2));
 
             var movementSystem = new MovementSystem();
-            _systems.Add(movementSystem);
+            _systems.AddSystem(movementSystem);
 
             // 첫 번째 틱 - 두 엔티티 모두 처리
             _systems.Tick(_context);
@@ -337,7 +342,7 @@ namespace Test.OVFL.ECS
             // Velocity 컴포넌트 없음
 
             var movementSystem = new MovementSystem();
-            _systems.Add(movementSystem);
+            _systems.AddSystem(movementSystem);
 
             // 첫 번째 틱 - 이동 불가
             _systems.Tick(_context);

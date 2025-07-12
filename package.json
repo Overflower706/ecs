@@ -1,6 +1,6 @@
 {
     "name": "com.ovfl.ecs",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "displayName": "OVFL ECS",
     "description": "순수한 형태의 커스텀 ECS 구현체 - 재사용 가능하고 학습 친화적인 Entity Component System",
     "unity": "6000.1",

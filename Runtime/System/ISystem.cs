@@ -1,6 +1,9 @@
 namespace OVFL.ECS
 {
-    public interface ISystem { }
+    public interface ISystem
+    {
+        Context Context { get; set; }
+    }
 
     public interface ISetupSystem : ISystem
     {
