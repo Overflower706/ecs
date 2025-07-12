@@ -26,6 +26,7 @@ namespace Test.OVFL.ECS
         // 테스트용 시스템들
         private class TestSetupSystem : ISetupSystem
         {
+            public Context Context { get; set; }
             public bool WasSetupCalled { get; private set; }
             public Context SetupContext { get; private set; }
 
@@ -38,6 +39,7 @@ namespace Test.OVFL.ECS
 
         private class TestTickSystem : ITickSystem
         {
+            public Context Context { get; set; }
             public int TickCallCount { get; private set; }
             public Context LastTickContext { get; private set; }
 
@@ -50,6 +52,7 @@ namespace Test.OVFL.ECS
 
         private class TestCleanupSystem : ICleanupSystem
         {
+            public Context Context { get; set; }
             public bool WasCleanupCalled { get; private set; }
             public Context CleanupContext { get; private set; }
 
@@ -62,6 +65,7 @@ namespace Test.OVFL.ECS
 
         private class TestTeardownSystem : ITeardownSystem
         {
+            public Context Context { get; set; }
             public bool WasTeardownCalled { get; private set; }
             public Context TeardownContext { get; private set; }
 
@@ -75,6 +79,7 @@ namespace Test.OVFL.ECS
         // 복합 시스템 (여러 인터페이스 구현)
         private class ComplexSystem : ISetupSystem, ITickSystem, ICleanupSystem, ITeardownSystem
         {
+            public Context Context { get; set; }
             public bool WasSetupCalled { get; private set; }
             public bool WasTickCalled { get; private set; }
             public bool WasCleanupCalled { get; private set; }
@@ -89,6 +94,7 @@ namespace Test.OVFL.ECS
         // 순서 테스트용 시스템
         private class OrderTrackingSystem : ISetupSystem, ITickSystem, ICleanupSystem, ITeardownSystem
         {
+            public Context Context { get; set; }
             private static readonly List<string> _callOrder = new List<string>();
             private readonly string _systemName;
 
@@ -114,6 +120,7 @@ namespace Test.OVFL.ECS
         {
             _systems = new Systems();
             _context = new Context();
+            _systems.SetContext(_context);
             OrderTrackingSystem.ClearOrder();
         }
 
@@ -124,7 +131,7 @@ namespace Test.OVFL.ECS
             var setupSystem = new TestSetupSystem();
 
             // Act
-            _systems.Add(setupSystem);
+            _systems.AddSystem(setupSystem);
             _systems.Setup(_context);
 
             // Assert
@@ -139,7 +146,7 @@ namespace Test.OVFL.ECS
             var tickSystem = new TestTickSystem();
 
             // Act
-            _systems.Add(tickSystem);
+            _systems.AddSystem(tickSystem);
             _systems.Tick(_context);
             _systems.Tick(_context);
 
@@ -155,7 +162,7 @@ namespace Test.OVFL.ECS
             var cleanupSystem = new TestCleanupSystem();
 
             // Act
-            _systems.Add(cleanupSystem);
+            _systems.AddSystem(cleanupSystem);
             _systems.Cleanup(_context);
 
             // Assert
@@ -170,7 +177,7 @@ namespace Test.OVFL.ECS
             var teardownSystem = new TestTeardownSystem();
 
             // Act
-            _systems.Add(teardownSystem);
+            _systems.AddSystem(teardownSystem);
             _systems.Teardown(_context);
 
             // Assert
@@ -185,7 +192,7 @@ namespace Test.OVFL.ECS
             var complexSystem = new ComplexSystem();
 
             // Act
-            _systems.Add(complexSystem);
+            _systems.AddSystem(complexSystem);
             _systems.Setup(_context);
             _systems.Tick(_context);
             _systems.Cleanup(_context);
@@ -206,8 +213,8 @@ namespace Test.OVFL.ECS
             var tickSystem2 = new TestTickSystem();
 
             // Act
-            _systems.Add(tickSystem1);
-            _systems.Add(tickSystem2);
+            _systems.AddSystem(tickSystem1);
+            _systems.AddSystem(tickSystem2);
             _systems.Tick(_context);
 
             // Assert
@@ -224,9 +231,9 @@ namespace Test.OVFL.ECS
             var system3 = new OrderTrackingSystem("System3");
 
             // Act
-            _systems.Add(system1);
-            _systems.Add(system2);
-            _systems.Add(system3);
+            _systems.AddSystem(system1);
+            _systems.AddSystem(system2);
+            _systems.AddSystem(system3);
 
             _systems.Setup(_context);
 
@@ -243,8 +250,8 @@ namespace Test.OVFL.ECS
             var system2 = new OrderTrackingSystem("B");
 
             // Act
-            _systems.Add(system1);
-            _systems.Add(system2);
+            _systems.AddSystem(system1);
+            _systems.AddSystem(system2);
 
             _systems.Setup(_context);
             _systems.Tick(_context);
@@ -270,7 +277,7 @@ namespace Test.OVFL.ECS
             var system2 = new TestTickSystem();
 
             // Act & Assert
-            var result = _systems.Add(system1).Add(system2);
+            var result = _systems.AddSystem(system1).AddSystem(system2);
 
             Assert.AreSame(_systems, result, "Add 메서드는 Systems 인스턴스를 반환하여 메서드 체이닝을 지원해야 합니다");
         }
@@ -313,10 +320,10 @@ namespace Test.OVFL.ECS
             var teardownSystem = new TestTeardownSystem();
 
             // Act
-            _systems.Add(setupSystem)
-                   .Add(tickSystem)
-                   .Add(cleanupSystem)
-                   .Add(teardownSystem);
+            _systems.AddSystem(setupSystem)
+                   .AddSystem(tickSystem)
+                   .AddSystem(cleanupSystem)
+                   .AddSystem(teardownSystem);
 
             // 전체 라이프사이클 실행
             _systems.Setup(_context);

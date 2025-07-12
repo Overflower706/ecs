@@ -19,6 +19,13 @@ namespace OVFL.ECS
             return component;
         }
 
+        public T AddComponent<T>() where T : class, IComponent, new()
+        {
+            var component = new T();
+            _components[typeof(T)] = component;
+            return component;
+        }
+
         public T GetComponent<T>() where T : class, IComponent
         {
             _components.TryGetValue(typeof(T), out var component);

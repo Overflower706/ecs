@@ -2,7 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.0] - 2025-01-03
+## [1.1.0] - 2025-07-09
+
+### Added
+- **AddComponent<T>()** 제네릭 메서드 추가
+  ```csharp
+  // Before
+  entity.AddComponent(new GridComponent());
+  
+  // After
+  entity.AddComponent<GridComponent>();
+  ```
+- **GetEntitiesWithComponent<T>()** 메서드 추가
+  ```csharp
+  // Context에서 특정 Component를 가진 Entity들 조회 (성능 최적화된 for문 사용)
+  var gameEntities = context.GetEntitiesWithComponent<GameStateComponent>();
+  ```
+- **Systems.AddSystem<T>()** 제네릭 메서드 추가
+  ```csharp
+  // Before
+  Systems.AddSystem(new DataSystem());
+  
+  // After
+  Systems.AddSystem<DataSystem>();
+  ```
+- **ISystem.Context 속성** 추가
+  ```csharp
+  // 모든 시스템이 Context 속성을 가지며, 시스템 등록 시 자동으로 할당됨
+  public class MySystem : ITickSystem
+  {
+      public Context Context { get; set; }  // 자동 할당
+      
+      public void Tick(Context context)
+      {
+          // this.Context로도 접근 가능
+      }
+  }
+  ```
+
+### Changed
+- **Systems.Add()** → **Systems.AddSystem()** 메서드명 변경 (명확성 향상)
+- **Systems.SetContext()** 메서드 추가로 Context 자동 할당 지원
+- 타입 안정성 향상
+- 코드 간결성 개선
+- 시스템 등록 시 Context 자동 할당으로 사용성 향상
+
+## [1.0.0] - 2025-07-03
 
 ### Added
 - 초기 ECS 구현체 릴리즈
@@ -21,7 +66,7 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 - **순수한 C# 구현**: Unity 의존성 최소화로 재사용성 극대화
-- **체이닝 메서드 지원**: `systems.Add(sys1).Add(sys2)` 형태로 편리한 사용
+- **체이닝 메서드 지원**: `systems.AddSystem(sys1).AddSystem(sys2)` 형태로 편리한 사용
 - **타입 안전성 보장**: 제네릭을 활용한 컴파일 타임 타입 검사
 - **학습 친화적인 구조**: 복잡한 최적화 없이 ECS 개념에 집중
 - **메모리 효율적**: Dictionary 기반 컴포넌트 저장
