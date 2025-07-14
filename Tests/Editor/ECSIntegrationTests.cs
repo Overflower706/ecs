@@ -64,10 +64,10 @@ namespace Test.OVFL.ECS
             public Context Context { get; set; }
             public int ProcessedEntityCount { get; private set; }
 
-            public void Tick(Context context)
+            public void Tick()
             {
                 ProcessedEntityCount = 0;
-                var entities = context.GetEntities();
+                var entities = Context.GetEntities();
 
                 foreach (var entity in entities)
                 {
@@ -89,10 +89,10 @@ namespace Test.OVFL.ECS
             public Context Context { get; set; }
             public int ProcessedEntityCount { get; private set; }
 
-            public void Tick(Context context)
+            public void Tick()
             {
                 ProcessedEntityCount = 0;
-                var entities = context.GetEntities();
+                var entities = Context.GetEntities();
 
                 foreach (var entity in entities)
                 {
@@ -112,10 +112,10 @@ namespace Test.OVFL.ECS
             public bool WasInitialized { get; private set; }
             public int InitializedEntityCount { get; private set; }
 
-            public void Setup(Context context)
+            public void Setup()
             {
                 WasInitialized = true;
-                InitializedEntityCount = context.GetEntities().Count;
+                InitializedEntityCount = Context.GetEntities().Count;
             }
         }
 
@@ -124,11 +124,11 @@ namespace Test.OVFL.ECS
             public Context Context { get; set; }
             public int CleanupCallCount { get; private set; }
 
-            public void Cleanup(Context context)
+            public void Cleanup()
             {
                 CleanupCallCount++;
                 // 체력이 0 이하인 엔티티들을 찾아서 표시 (실제로는 제거할 수 있음)
-                var entities = context.GetEntities();
+                var entities = Context.GetEntities();
                 foreach (var entity in entities)
                 {
                     var health = entity.GetComponent<HealthComponent>();
@@ -185,7 +185,7 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(movementSystem);
 
             // Act
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             var position = entity.GetComponent<PositionComponent>();
@@ -212,7 +212,7 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(movementSystem);
 
             // Act
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             Assert.AreEqual(1, movementSystem.ProcessedEntityCount, "필요한 컴포넌트를 모두 가진 엔티티만 처리되어야 합니다");
@@ -239,7 +239,7 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(movementSystem).AddSystem(healthRegenSystem);
 
             // Act
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             var position = entity.GetComponent<PositionComponent>();
@@ -281,9 +281,9 @@ namespace Test.OVFL.ECS
             // Velocity 없음 - 이동하지 않아야 함
 
             // Act - 전체 라이프사이클 실행
-            _systems.Setup(_context);
-            _systems.Tick(_context);
-            _systems.Cleanup(_context);
+            _systems.Setup();
+            _systems.Tick();
+            _systems.Cleanup();
 
             // Assert
             Assert.IsTrue(initSystem.WasInitialized, "초기화 시스템이 실행되어야 합니다");
@@ -319,14 +319,14 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(movementSystem);
 
             // 첫 번째 틱 - 두 엔티티 모두 처리
-            _systems.Tick(_context);
+            _systems.Tick();
             Assert.AreEqual(2, movementSystem.ProcessedEntityCount, "첫 번째 틱에서 두 엔티티가 처리되어야 합니다");
 
             // Act - 엔티티 하나 제거
             _context.DestroyEntity(entity1);
 
             // 두 번째 틱 - 남은 엔티티만 처리
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             Assert.AreEqual(1, movementSystem.ProcessedEntityCount, "두 번째 틱에서 남은 엔티티만 처리되어야 합니다");
@@ -345,14 +345,14 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(movementSystem);
 
             // 첫 번째 틱 - 이동 불가
-            _systems.Tick(_context);
+            _systems.Tick();
             Assert.AreEqual(0, movementSystem.ProcessedEntityCount, "Velocity가 없으면 처리되지 않아야 합니다");
 
             // Act - Velocity 컴포넌트 추가
             entity.AddComponent(new VelocityComponent(3, 4));
 
             // 두 번째 틱 - 이동 가능
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             Assert.AreEqual(1, movementSystem.ProcessedEntityCount, "Velocity 추가 후 처리되어야 합니다");
@@ -365,7 +365,7 @@ namespace Test.OVFL.ECS
             entity.RemoveComponent<VelocityComponent>();
 
             // 세 번째 틱 - 다시 이동 불가
-            _systems.Tick(_context);
+            _systems.Tick();
             Assert.AreEqual(0, movementSystem.ProcessedEntityCount, "Velocity 제거 후 처리되지 않아야 합니다");
         }
     }

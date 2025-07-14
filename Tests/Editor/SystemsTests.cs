@@ -30,10 +30,10 @@ namespace Test.OVFL.ECS
             public bool WasSetupCalled { get; private set; }
             public Context SetupContext { get; private set; }
 
-            public void Setup(Context context)
+            public void Setup()
             {
                 WasSetupCalled = true;
-                SetupContext = context;
+                SetupContext = Context;
             }
         }
 
@@ -43,10 +43,10 @@ namespace Test.OVFL.ECS
             public int TickCallCount { get; private set; }
             public Context LastTickContext { get; private set; }
 
-            public void Tick(Context context)
+            public void Tick()
             {
                 TickCallCount++;
-                LastTickContext = context;
+                LastTickContext = Context;
             }
         }
 
@@ -56,10 +56,10 @@ namespace Test.OVFL.ECS
             public bool WasCleanupCalled { get; private set; }
             public Context CleanupContext { get; private set; }
 
-            public void Cleanup(Context context)
+            public void Cleanup()
             {
                 WasCleanupCalled = true;
-                CleanupContext = context;
+                CleanupContext = Context;
             }
         }
 
@@ -69,10 +69,10 @@ namespace Test.OVFL.ECS
             public bool WasTeardownCalled { get; private set; }
             public Context TeardownContext { get; private set; }
 
-            public void Teardown(Context context)
+            public void Teardown()
             {
                 WasTeardownCalled = true;
-                TeardownContext = context;
+                TeardownContext = Context;
             }
         }
 
@@ -85,10 +85,10 @@ namespace Test.OVFL.ECS
             public bool WasCleanupCalled { get; private set; }
             public bool WasTeardownCalled { get; private set; }
 
-            public void Setup(Context context) => WasSetupCalled = true;
-            public void Tick(Context context) => WasTickCalled = true;
-            public void Cleanup(Context context) => WasCleanupCalled = true;
-            public void Teardown(Context context) => WasTeardownCalled = true;
+            public void Setup() => WasSetupCalled = true;
+            public void Tick() => WasTickCalled = true;
+            public void Cleanup() => WasCleanupCalled = true;
+            public void Teardown() => WasTeardownCalled = true;
         }
 
         // 순서 테스트용 시스템
@@ -106,10 +106,10 @@ namespace Test.OVFL.ECS
             public static List<string> CallOrder => _callOrder;
             public static void ClearOrder() => _callOrder.Clear();
 
-            public void Setup(Context context) => _callOrder.Add($"{_systemName}.Setup");
-            public void Tick(Context context) => _callOrder.Add($"{_systemName}.Tick");
-            public void Cleanup(Context context) => _callOrder.Add($"{_systemName}.Cleanup");
-            public void Teardown(Context context) => _callOrder.Add($"{_systemName}.Teardown");
+            public void Setup() => _callOrder.Add($"{_systemName}.Setup");
+            public void Tick() => _callOrder.Add($"{_systemName}.Tick");
+            public void Cleanup() => _callOrder.Add($"{_systemName}.Cleanup");
+            public void Teardown() => _callOrder.Add($"{_systemName}.Teardown");
         }
 
         private Systems _systems;
@@ -132,7 +132,7 @@ namespace Test.OVFL.ECS
 
             // Act
             _systems.AddSystem(setupSystem);
-            _systems.Setup(_context);
+            _systems.Setup();
 
             // Assert
             Assert.IsTrue(setupSystem.WasSetupCalled, "Setup 시스템의 Setup 메서드가 호출되어야 합니다");
@@ -147,8 +147,8 @@ namespace Test.OVFL.ECS
 
             // Act
             _systems.AddSystem(tickSystem);
-            _systems.Tick(_context);
-            _systems.Tick(_context);
+            _systems.Tick();
+            _systems.Tick();
 
             // Assert
             Assert.AreEqual(2, tickSystem.TickCallCount, "Tick 시스템의 Tick 메서드가 호출된 횟수가 정확해야 합니다");
@@ -163,7 +163,7 @@ namespace Test.OVFL.ECS
 
             // Act
             _systems.AddSystem(cleanupSystem);
-            _systems.Cleanup(_context);
+            _systems.Cleanup();
 
             // Assert
             Assert.IsTrue(cleanupSystem.WasCleanupCalled, "Cleanup 시스템의 Cleanup 메서드가 호출되어야 합니다");
@@ -178,7 +178,7 @@ namespace Test.OVFL.ECS
 
             // Act
             _systems.AddSystem(teardownSystem);
-            _systems.Teardown(_context);
+            _systems.Teardown();
 
             // Assert
             Assert.IsTrue(teardownSystem.WasTeardownCalled, "Teardown 시스템의 Teardown 메서드가 호출되어야 합니다");
@@ -193,10 +193,10 @@ namespace Test.OVFL.ECS
 
             // Act
             _systems.AddSystem(complexSystem);
-            _systems.Setup(_context);
-            _systems.Tick(_context);
-            _systems.Cleanup(_context);
-            _systems.Teardown(_context);
+            _systems.Setup();
+            _systems.Tick();
+            _systems.Cleanup();
+            _systems.Teardown();
 
             // Assert
             Assert.IsTrue(complexSystem.WasSetupCalled, "Setup이 호출되어야 합니다");
@@ -215,7 +215,7 @@ namespace Test.OVFL.ECS
             // Act
             _systems.AddSystem(tickSystem1);
             _systems.AddSystem(tickSystem2);
-            _systems.Tick(_context);
+            _systems.Tick();
 
             // Assert
             Assert.AreEqual(1, tickSystem1.TickCallCount, "첫 번째 시스템이 호출되어야 합니다");
@@ -235,7 +235,7 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(system2);
             _systems.AddSystem(system3);
 
-            _systems.Setup(_context);
+            _systems.Setup();
 
             // Assert
             var expectedOrder = new[] { "System1.Setup", "System2.Setup", "System3.Setup" };
@@ -253,10 +253,10 @@ namespace Test.OVFL.ECS
             _systems.AddSystem(system1);
             _systems.AddSystem(system2);
 
-            _systems.Setup(_context);
-            _systems.Tick(_context);
-            _systems.Cleanup(_context);
-            _systems.Teardown(_context);
+            _systems.Setup();
+            _systems.Tick();
+            _systems.Cleanup();
+            _systems.Teardown();
 
             // Assert
             var expectedOrder = new[]
@@ -286,28 +286,28 @@ namespace Test.OVFL.ECS
         public void Setup_WithoutSystems_ShouldNotThrow()
         {
             // Act & Assert
-            Assert.DoesNotThrow(() => _systems.Setup(_context), "시스템이 없어도 Setup 호출 시 예외가 발생하지 않아야 합니다");
+            Assert.DoesNotThrow(() => _systems.Setup(), "시스템이 없어도 Setup 호출 시 예외가 발생하지 않아야 합니다");
         }
 
         [Test]
         public void Tick_WithoutSystems_ShouldNotThrow()
         {
             // Act & Assert
-            Assert.DoesNotThrow(() => _systems.Tick(_context), "시스템이 없어도 Tick 호출 시 예외가 발생하지 않아야 합니다");
+            Assert.DoesNotThrow(() => _systems.Tick(), "시스템이 없어도 Tick 호출 시 예외가 발생하지 않아야 합니다");
         }
 
         [Test]
         public void Cleanup_WithoutSystems_ShouldNotThrow()
         {
             // Act & Assert
-            Assert.DoesNotThrow(() => _systems.Cleanup(_context), "시스템이 없어도 Cleanup 호출 시 예외가 발생하지 않아야 합니다");
+            Assert.DoesNotThrow(() => _systems.Cleanup(), "시스템이 없어도 Cleanup 호출 시 예외가 발생하지 않아야 합니다");
         }
 
         [Test]
         public void Teardown_WithoutSystems_ShouldNotThrow()
         {
             // Act & Assert
-            Assert.DoesNotThrow(() => _systems.Teardown(_context), "시스템이 없어도 Teardown 호출 시 예외가 발생하지 않아야 합니다");
+            Assert.DoesNotThrow(() => _systems.Teardown(), "시스템이 없어도 Teardown 호출 시 예외가 발생하지 않아야 합니다");
         }
 
         [Test]
@@ -326,11 +326,11 @@ namespace Test.OVFL.ECS
                    .AddSystem(teardownSystem);
 
             // 전체 라이프사이클 실행
-            _systems.Setup(_context);
-            _systems.Tick(_context);
-            _systems.Tick(_context);
-            _systems.Cleanup(_context);
-            _systems.Teardown(_context);
+            _systems.Setup();
+            _systems.Tick();
+            _systems.Tick();
+            _systems.Cleanup();
+            _systems.Teardown();
 
             // Assert
             Assert.IsTrue(setupSystem.WasSetupCalled, "Setup 시스템이 호출되어야 합니다");

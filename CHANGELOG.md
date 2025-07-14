@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2025-07-14
+
+### Changed
+- **Systems.Add()** → **Systems.AddSystem()** 메서드명 변경 (명확성 향상)
+- **Systems.SetContext()** 메서드 추가로 Context 자동 할당 지원
+- **ISystem 인터페이스 메서드 시그니처 변경**
+  ```csharp
+  // Before
+  void Setup(Context context);
+  void Tick(Context context);
+  void Cleanup(Context context);
+  void Teardown(Context context);
+  
+  // After
+  void Setup();
+  void Tick();
+  void Cleanup();
+  void Teardown();
+  ```
+- **ISystem.Context 속성** 추가
+  ```csharp
+  // 모든 시스템이 Context 속성을 가지며, 시스템 등록 시 자동으로 할당됨
+  public class MySystem : ITickSystem
+  {
+      public Context Context { get; set; }  // 자동 할당
+      
+      public void Tick()  // Context 파라미터 제거
+      {
+          // this.Context 사용
+          var entities = this.Context.GetEntities();
+      }
+  }
+  ```
+- 타입 안정성 향상
+- 코드 간결성 개선 (Context 파라미터 제거로 메서드 시그니처 단순화)
+- 시스템 등록 시 Context 자동 할당으로 사용성 향상
+
 ## [1.1.0] - 2025-07-09
 
 ### Added
@@ -26,26 +63,6 @@ All notable changes to this project will be documented in this file.
   // After
   Systems.AddSystem<DataSystem>();
   ```
-- **ISystem.Context 속성** 추가
-  ```csharp
-  // 모든 시스템이 Context 속성을 가지며, 시스템 등록 시 자동으로 할당됨
-  public class MySystem : ITickSystem
-  {
-      public Context Context { get; set; }  // 자동 할당
-      
-      public void Tick(Context context)
-      {
-          // this.Context로도 접근 가능
-      }
-  }
-  ```
-
-### Changed
-- **Systems.Add()** → **Systems.AddSystem()** 메서드명 변경 (명확성 향상)
-- **Systems.SetContext()** 메서드 추가로 Context 자동 할당 지원
-- 타입 안정성 향상
-- 코드 간결성 개선
-- 시스템 등록 시 Context 자동 할당으로 사용성 향상
 
 ## [1.0.0] - 2025-07-03
 

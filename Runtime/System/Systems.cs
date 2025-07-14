@@ -61,44 +61,44 @@ namespace OVFL.ECS
         /// <summary>
         /// 모든 Setup System을 실행합니다 (초기화 시 한 번)
         /// </summary>
-        public void Setup(Context context)
+        public void Setup()
         {
             foreach (var system in setupSystems)
             {
-                system.Setup(context);
+                system.Setup();
             }
         }
 
         /// <summary>
         /// 모든 Tick System을 실행합니다 (매 프레임)
         /// </summary>
-        public void Tick(Context context)
+        public void Tick()
         {
             foreach (var system in tickSystems)
             {
-                system.Tick(context);
+                system.Tick();
             }
         }
 
         /// <summary>
         /// 모든 Cleanup System을 실행합니다 (Tick 이후)
         /// </summary>
-        public void Cleanup(Context context)
+        public void Cleanup()
         {
             foreach (var system in cleanupSystems)
             {
-                system.Cleanup(context);
+                system.Cleanup();
             }
         }
 
         /// <summary>
         /// 모든 Teardown System을 실행합니다 (마무리 시 한 번)
         /// </summary>
-        public void Teardown(Context context)
+        public void Teardown()
         {
             foreach (var system in teardownSystems)
             {
-                system.Teardown(context);
+                system.Teardown();
             }
         }
     }
