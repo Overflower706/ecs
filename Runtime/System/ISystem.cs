@@ -7,20 +7,20 @@ namespace OVFL.ECS
 
     public interface ISetupSystem : ISystem
     {
-        void Setup(Context context);
+        void Setup();
     }
 
     public interface ITickSystem : ISystem
     {
-        void Tick(Context context);
+        void Tick();
     }
     public interface ICleanupSystem : ISystem
     {
-        void Cleanup(Context context);
+        void Cleanup();
     }
 
     public interface ITeardownSystem : ISystem
     {
-        void Teardown(Context context);
+        void Teardown();
     }
 }
