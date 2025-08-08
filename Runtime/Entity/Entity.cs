@@ -8,6 +8,10 @@ namespace OVFL.ECS
         private readonly Dictionary<Type, IComponent> _components = new();
         public int ID { get; private set; }
 
+        // 컴포넌트 변경 이벤트
+        public event Action<Entity, Type> OnComponentAdded;
+        public event Action<Entity, Type> OnComponentRemoved;
+
         public Entity(int id)
         {
             ID = id;
@@ -15,15 +19,26 @@ namespace OVFL.ECS
 
         public T AddComponent<T>(T component) where T : class, IComponent
         {
-            _components[typeof(T)] = component;
+            var componentType = component.GetType();
+            _components[componentType] = component;
+            OnComponentAdded?.Invoke(this, componentType);
+            return component;
+        }
+
+        public IComponent AddComponent(IComponent component)
+        {
+            if (component == null) return null;
+
+            var componentType = component.GetType();
+            _components[componentType] = component;
+            OnComponentAdded?.Invoke(this, componentType);
             return component;
         }
 
         public T AddComponent<T>() where T : class, IComponent, new()
         {
             var component = new T();
-            _components[typeof(T)] = component;
-            return component;
+            return AddComponent(component);
         }
 
         public T GetComponent<T>() where T : class, IComponent
@@ -39,7 +54,13 @@ namespace OVFL.ECS
 
         public bool RemoveComponent<T>() where T : class, IComponent
         {
-            return _components.Remove(typeof(T));
+            var componentType = typeof(T);
+            if (_components.Remove(componentType))
+            {
+                OnComponentRemoved?.Invoke(this, componentType);
+                return true;
+            }
+            return false;
         }
     }
 }
