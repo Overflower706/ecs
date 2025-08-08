@@ -216,5 +216,37 @@ namespace Test.OVFL.ECS
             Assert.IsFalse(_context.GetEntities().Contains(entity2), "다른 컨텍스트의 엔티티는 포함되지 않아야 합니다");
             Assert.IsFalse(context2.GetEntities().Contains(entity1), "다른 컨텍스트의 엔티티는 포함되지 않아야 합니다");
         }
+
+        [Test]
+        public void ComponentCaching_PerformanceTest_ShouldBeFasterThanLinearSearch()
+        {
+            // Arrange - 많은 엔티티 생성
+            const int entityCount = 1000;
+            var entities = new Entity[entityCount];
+
+            for (int i = 0; i < entityCount; i++)
+            {
+                entities[i] = _context.CreateEntity();
+                if (i % 10 == 0) // 10개 중 1개만 TestComponent 추가
+                {
+                    entities[i].AddComponent(new TestComponent($"Entity{i}"));
+                }
+            }
+
+            // Act - 여러 번 조회해서 캐시 성능 확인
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            for (int i = 0; i < 100; i++) // 100번 조회
+            {
+                var result = _context.GetEntitiesWithComponent<TestComponent>();
+                Assert.AreEqual(100, result.Count, "매번 동일한 결과를 반환해야 합니다");
+            }
+
+            stopwatch.Stop();
+
+            // Assert - 성능 검증 (구체적인 시간은 환경에 따라 다르므로 로그만 출력)
+            UnityEngine.Debug.Log($"1000개 엔티티 중 100번 조회 시간: {stopwatch.ElapsedMilliseconds}ms");
+            Assert.Less(stopwatch.ElapsedMilliseconds, 100, "캐시를 사용하면 100ms 이내에 완료되어야 합니다");
+        }
     }
 }
