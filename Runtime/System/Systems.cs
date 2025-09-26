@@ -9,6 +9,7 @@ namespace OVFL.ECS
         private readonly List<ISetupSystem> setupSystems = new();
         private readonly List<ITickSystem> tickSystems = new();
         private readonly List<ICleanupSystem> cleanupSystems = new();
+        private readonly List<IFixedTickSystem> fixedTickSystems = new();
         private readonly List<ITeardownSystem> teardownSystems = new();
 
         /// <summary>
@@ -42,6 +43,9 @@ namespace OVFL.ECS
 
             if (system is ICleanupSystem cleanupSystem)
                 cleanupSystems.Add(cleanupSystem);
+
+            if (system is IFixedTickSystem fixedTickSystem)
+                fixedTickSystems.Add(fixedTickSystem);
 
             if (system is ITeardownSystem teardownSystem)
                 teardownSystems.Add(teardownSystem);
@@ -88,6 +92,17 @@ namespace OVFL.ECS
             foreach (var system in cleanupSystems)
             {
                 system.Cleanup();
+            }
+        }
+
+        /// <summary>
+        /// 모든 FixedTick System을 실행합니다 (고정 시간)
+        /// </summary>
+        public void FixedTick()
+        {
+            foreach (var system in fixedTickSystems)
+            {
+                system.FixedTick();
             }
         }
 
