@@ -60,7 +60,6 @@ namespace OVFL.ECS
 
         public static readonly Entity Null = new Entity(0, 0);
         public bool IsNull => ID == 0 && Generation == 0;
-
         public bool Equals(Entity other) => ID == other.ID && Generation == other.Generation;
         public override bool Equals(object obj) => obj is Entity other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(ID, Generation);
