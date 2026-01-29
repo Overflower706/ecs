@@ -7,11 +7,15 @@ namespace OVFL.ECS
     {
         private readonly List<Entity> _entities = new();
         private readonly Dictionary<Type, HashSet<Entity>> _componentToEntities = new();
+        private readonly Queue<int> _availableIDs = new();
         private int _nextEntityID = 1;
 
         public Entity CreateEntity()
         {
-            var entity = new Entity(_nextEntityID++);
+            // ID 풀에서 재사용 가능한 ID가 있으면 사용, 없으면 새 ID 생성
+            int entityID = _availableIDs.Count > 0 ? _availableIDs.Dequeue() : _nextEntityID++;
+
+            var entity = new Entity(entityID);
             _entities.Add(entity);
 
             // 엔티티에 컴포넌트 변경 이벤트 구독
@@ -33,6 +37,10 @@ namespace OVFL.ECS
 
                 entity.OnComponentAdded -= OnEntityComponentAdded;
                 entity.OnComponentRemoved -= OnEntityComponentRemoved;
+
+                // 제거된 엔티티의 ID를 풀에 추가하여 재사용 가능하게 함
+                _availableIDs.Enqueue(entity.ID);
+
                 return true;
             }
             return false;

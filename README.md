@@ -1,4 +1,4 @@
-# OVFL ECS (Entity Component System)
+# OVFL ECS (OVFL Entity Component System)
 
 순수하고 학습하기 쉬운 커스텀 ECS 구현체입니다.
 
@@ -11,7 +11,7 @@
 
 ### Unity Package Manager로 설치
 
-#### 방법 1: Package Manager UI 사용
+#### 방법 1: Package Manager 사용
 1. Unity에서 **Window > Package Manager** 열기
 2. 좌상단 **+** 버튼 클릭
 3. **Add package from git URL...** 선택
@@ -26,12 +26,13 @@
    ```json
    {
      "dependencies": {
-       "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git#v1.0.0"
+       "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git"
      }
    }
    ```
 
 #### 방법 3: 특정 버전 설치
+git 주소 끝에 해당 버전을 입력하면 됩니다.
 ```json
 {
   "dependencies": {
@@ -39,10 +40,6 @@
   }
 }
 ```
-
-### 요구사항
-- Unity 2020.3 LTS 이상
-- .NET Standard 2.1 호환
 
 ## 🏗️ 아키텍처
 
@@ -57,7 +54,7 @@ entity.AddComponent(new VelocityComponent(1, 0));
 
 - 고유 ID를 가진 게임 객체
 - 컴포넌트들을 담는 컨테이너 역할
-- 컴포넌트 추가, 제거, 조회 기능
+- 확장(Extensions)을 통해 컴포넌트 추가, 제거, 조회가 가능합니다.
 
 #### 2. **Component (컴포넌트)**
 ```csharp
