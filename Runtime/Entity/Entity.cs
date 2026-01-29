@@ -3,25 +3,22 @@ using System.Collections.Generic;
 
 namespace OVFL.ECS
 {
-    public class Entity
+    public class Entity : IEquatable<Entity>
     {
         private readonly Dictionary<Type, IComponent> _components = new();
-        public int ID { get; private set; }
+        public readonly int ID;
+        public readonly int Generation;
 
-        // 컴포넌트 변경 이벤트
-        public event Action<Entity, Type> OnComponentAdded;
-        public event Action<Entity, Type> OnComponentRemoved;
-
-        public Entity(int id)
+        public Entity(int id, int generation)
         {
             ID = id;
+            Generation = generation;
         }
 
         public T AddComponent<T>(T component) where T : class, IComponent
         {
             var componentType = component.GetType();
             _components[componentType] = component;
-            OnComponentAdded?.Invoke(this, componentType);
             return component;
         }
 
@@ -31,7 +28,6 @@ namespace OVFL.ECS
 
             var componentType = component.GetType();
             _components[componentType] = component;
-            OnComponentAdded?.Invoke(this, componentType);
             return component;
         }
 
@@ -57,10 +53,19 @@ namespace OVFL.ECS
             var componentType = typeof(T);
             if (_components.Remove(componentType))
             {
-                OnComponentRemoved?.Invoke(this, componentType);
                 return true;
             }
             return false;
         }
+
+        public static readonly Entity Null = new Entity(0, 0);
+        public bool IsNull => ID == 0 && Generation == 0;
+
+        public bool Equals(Entity other) => ID == other.ID && Generation == other.Generation;
+        public override bool Equals(object obj) => obj is Entity other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(ID, Generation);
+        public static bool operator ==(Entity left, Entity right) => left.Equals(right);
+        public static bool operator !=(Entity left, Entity right) => !left.Equals(right);
+        public override string ToString() => $"Entity({ID}:{Generation})";
     }
 }

@@ -149,7 +149,7 @@ namespace Test.OVFL.ECS
         public void DestroyEntity_WhenNotExists_ShouldReturnFalse()
         {
             // Arrange
-            var externalEntity = new Entity(999); // Context가 생성하지 않은 엔티티
+            var externalEntity = new Entity(999, 0); // Context가 생성하지 않은 엔티티
 
             // Act
             var destroyed = _context.DestroyEntity(externalEntity);
