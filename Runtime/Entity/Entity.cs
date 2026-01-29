@@ -22,15 +22,6 @@ namespace OVFL.ECS
             return component;
         }
 
-        public IComponent AddComponent(IComponent component)
-        {
-            if (component == null) return null;
-
-            var componentType = component.GetType();
-            _components[componentType] = component;
-            return component;
-        }
-
         public T AddComponent<T>() where T : class, IComponent, new()
         {
             var component = new T();
@@ -43,19 +34,20 @@ namespace OVFL.ECS
             return component as T;
         }
 
+        public bool TryGetComponent<T>(out T component) where T : class, IComponent
+        {
+            component = GetComponent<T>();
+            return component != null;
+        }
+
         public bool HasComponent<T>() where T : class, IComponent
         {
             return _components.ContainsKey(typeof(T));
         }
 
-        public bool RemoveComponent<T>() where T : class, IComponent
+        public void RemoveComponent<T>() where T : class, IComponent
         {
-            var componentType = typeof(T);
-            if (_components.Remove(componentType))
-            {
-                return true;
-            }
-            return false;
+            _components.Remove(typeof(T));
         }
 
         public static readonly Entity Null = new Entity(0, 0);

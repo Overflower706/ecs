@@ -49,15 +49,14 @@ namespace Test.OVFL.ECS
         [SetUp]
         public void SetUp()
         {
-            _entity = new Entity(1);
+            _entity = new Entity(1, 0);
         }
 
         [Test]
         public void Entity_HasCorrectID()
         {
             // Arrange & Act
-            var entity = new Entity(42);
-
+            var entity = new Entity(42, 0);
             // Assert
             Assert.AreEqual(42, entity.ID, "엔티티 ID가 올바르게 설정되어야 합니다");
         }
@@ -126,22 +125,11 @@ namespace Test.OVFL.ECS
             _entity.AddComponent(new NameComponent("TestEntity"));
 
             // Act
-            var removed = _entity.RemoveComponent<NameComponent>();
+            _entity.RemoveComponent<NameComponent>();
 
             // Assert
-            Assert.IsTrue(removed, "존재하는 컴포넌트 제거 시 true를 반환해야 합니다");
             Assert.IsFalse(_entity.HasComponent<NameComponent>(), "제거 후 컴포넌트가 존재하지 않아야 합니다");
             Assert.IsNull(_entity.GetComponent<NameComponent>(), "제거 후 컴포넌트 조회 시 null을 반환해야 합니다");
-        }
-
-        [Test]
-        public void RemoveComponent_WhenNotExists_ShouldReturnFalse()
-        {
-            // Act
-            var removed = _entity.RemoveComponent<PositionComponent>();
-
-            // Assert
-            Assert.IsFalse(removed, "존재하지 않는 컴포넌트 제거 시 false를 반환해야 합니다");
         }
 
         [Test]
@@ -189,8 +177,8 @@ namespace Test.OVFL.ECS
         public void Entity_DifferentIDs_AreDifferent()
         {
             // Arrange & Act
-            var entity1 = new Entity(1);
-            var entity2 = new Entity(2);
+            var entity1 = new Entity(1, 0);
+            var entity2 = new Entity(2, 0);
 
             // Assert
             Assert.AreNotEqual(entity1.ID, entity2.ID, "서로 다른 엔티티는 다른 ID를 가져야 합니다");
