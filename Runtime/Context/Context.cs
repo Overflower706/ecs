@@ -90,6 +90,20 @@ namespace OVFL.ECS
         }
 
         // TODO : v1.6.0에서 제거
+        [Obsolete("GetEntitiesWithComponent는 더 이상 사용되지 않습니다.")]
+        public Entity GetEntitiesWithComponent<T>() where T : class, IComponent
+        {
+            foreach (var entity in _entities)
+            {
+                if (entity.HasComponent<T>())
+                {
+                    return entity;
+                }
+            }
+            return null;
+        }
+
+        // TODO : v1.6.0에서 제거
         [Obsolete("GetEntities는 더 이상 사용되지 않습니다. 대신 AllEntities를 사용하세요.")]
         public List<Entity> GetEntities
         {
