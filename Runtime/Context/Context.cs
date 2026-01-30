@@ -106,9 +106,9 @@ namespace OVFL.ECS
 
         // TODO : v1.6.0에서 제거
         [Obsolete("GetEntities는 더 이상 사용되지 않습니다. 대신 AllEntities를 사용하세요.")]
-        public List<Entity> GetEntities
+        public List<Entity> GetEntities()
         {
-            get { return _entities; }
+            return new List<Entity>(_entities);
         }
 
         public bool IsAlive(Entity entity)
