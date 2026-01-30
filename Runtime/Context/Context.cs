@@ -5,73 +5,102 @@ namespace OVFL.ECS
 {
     public class Context
     {
-        private readonly List<Entity> _entities = new();
-        private readonly Dictionary<Type, HashSet<Entity>> _componentToEntities = new();
-        private int _nextEntityID = 1;
+        private int[] _entityIndices = new int[1024]; // Sparse 배열
+        private readonly List<Entity> _entities = new(); // Dense 배열
+        public IEnumerable<Entity> AllEntities => _entities;
+
+        private readonly Queue<int> _availableIDs = new();
+        private readonly List<int> _generations = new();
+        private int _nextEntityID = 0;
+
+        public Context()
+        {
+            Array.Fill(_entityIndices, -1);
+        }
 
         public Entity CreateEntity()
         {
-            var entity = new Entity(_nextEntityID++);
-            _entities.Add(entity);
+            int id;
+            int generation;
 
-            // 엔티티에 컴포넌트 변경 이벤트 구독
-            entity.OnComponentAdded += OnEntityComponentAdded;
-            entity.OnComponentRemoved += OnEntityComponentRemoved;
+            if (_availableIDs.Count > 0)
+            {
+                id = _availableIDs.Dequeue();
+                generation = _generations[id];
+            }
+            else
+            {
+                id = _nextEntityID++;
+                generation = 1;
+                _generations.Add(generation);
+
+                if (id >= _entityIndices.Length)
+                {
+                    int oldSize = _entityIndices.Length;
+                    Array.Resize(ref _entityIndices, oldSize * 2);
+                    // 영역 확장시 -1로 초기화
+                    for (int i = oldSize; i < _entityIndices.Length; i++)
+                        _entityIndices[i] = -1;
+                }
+            }
+
+            var entity = new Entity(id, generation);
+            _entities.Add(entity);
+            _entityIndices[id] = _entities.Count - 1;
 
             return entity;
         }
 
         public bool DestroyEntity(Entity entity)
         {
-            if (_entities.Remove(entity))
+            if (!IsAlive(entity)) return false;
+
+            int idToRemove = entity.ID;
+            int indexToRemove = _entityIndices[idToRemove];
+            int lastIndex = _entities.Count - 1;
+
+            // Swap & Pop: 맨 뒤의 엔티티를 삭제할 칸으로 이동
+            if (indexToRemove != lastIndex)
             {
-                // 모든 캐시에서 엔티티 제거
-                foreach (var componentSet in _componentToEntities.Values)
-                {
-                    componentSet.Remove(entity);
-                }
-
-                entity.OnComponentAdded -= OnEntityComponentAdded;
-                entity.OnComponentRemoved -= OnEntityComponentRemoved;
-                return true;
-            }
-            return false;
-        }
-
-        public IReadOnlyList<Entity> GetEntities()
-        {
-            return _entities.AsReadOnly();
-        }
-
-        public List<Entity> GetEntitiesWithComponent<T>() where T : class, IComponent
-        {
-            var componentType = typeof(T);
-
-            if (_componentToEntities.TryGetValue(componentType, out var entitySet))
-            {
-                return new List<Entity>(entitySet);
+                Entity lastEntity = _entities[lastIndex];
+                _entities[indexToRemove] = lastEntity;
+                _entityIndices[lastEntity.ID] = indexToRemove;
             }
 
-            return new List<Entity>();
+            _entities.RemoveAt(lastIndex);
+            _entityIndices[idToRemove] = -1; // 이제 0번 ID라도 여기서 -1로 밀림
+
+            _generations[idToRemove]++;
+            _availableIDs.Enqueue(idToRemove);
+            entity.IsActive = false;
+
+            return true;
         }
 
-        private void OnEntityComponentAdded(Entity entity, Type componentType)
+        public Entity GetEntity(int id)
         {
-            if (!_componentToEntities.TryGetValue(componentType, out var entitySet))
-            {
-                entitySet = new HashSet<Entity>();
-                _componentToEntities[componentType] = entitySet;
-            }
+            // 0번 ID도 유효하므로 id >= 0 체크
+            if (id < 0 || id >= _generations.Count) return null;
 
-            entitySet.Add(entity);
+            int index = _entityIndices[id];
+            if (index == -1) return null;
+
+            Entity entity = _entities[index];
+            return (entity.Generation == _generations[id]) ? entity : null;
         }
 
-        private void OnEntityComponentRemoved(Entity entity, Type componentType)
+        // TODO : v1.6.0에서 제거
+        [Obsolete("GetEntities는 더 이상 사용되지 않습니다. 대신 AllEntities를 사용하세요.")]
+        public List<Entity> GetEntities
         {
-            if (_componentToEntities.TryGetValue(componentType, out var entitySet))
-            {
-                entitySet.Remove(entity);
-            }
+            get { return _entities; }
+        }
+
+        public bool IsAlive(Entity entity)
+        {
+            if (entity == null) return false;
+            if (entity.ID < 0 || entity.ID >= _generations.Count) return false;
+            return _generations[entity.ID] == entity.Generation;
         }
     }
 }

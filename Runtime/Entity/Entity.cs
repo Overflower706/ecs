@@ -3,35 +3,24 @@ using System.Collections.Generic;
 
 namespace OVFL.ECS
 {
-    public class Entity
+    public class Entity : IEquatable<Entity>
     {
+        public readonly int ID;
+        public readonly int Generation;
+        public bool IsActive { get; internal set; }
         private readonly Dictionary<Type, IComponent> _components = new();
-        public int ID { get; private set; }
 
-        // 컴포넌트 변경 이벤트
-        public event Action<Entity, Type> OnComponentAdded;
-        public event Action<Entity, Type> OnComponentRemoved;
-
-        public Entity(int id)
+        public Entity(int id, int generation)
         {
             ID = id;
+            Generation = generation;
+            IsActive = true;
         }
 
         public T AddComponent<T>(T component) where T : class, IComponent
         {
             var componentType = component.GetType();
             _components[componentType] = component;
-            OnComponentAdded?.Invoke(this, componentType);
-            return component;
-        }
-
-        public IComponent AddComponent(IComponent component)
-        {
-            if (component == null) return null;
-
-            var componentType = component.GetType();
-            _components[componentType] = component;
-            OnComponentAdded?.Invoke(this, componentType);
             return component;
         }
 
@@ -47,20 +36,41 @@ namespace OVFL.ECS
             return component as T;
         }
 
+        public bool TryGetComponent<T>(out T component) where T : class, IComponent
+        {
+            component = GetComponent<T>();
+            return component != null;
+        }
+
         public bool HasComponent<T>() where T : class, IComponent
         {
             return _components.ContainsKey(typeof(T));
         }
 
-        public bool RemoveComponent<T>() where T : class, IComponent
+        public void RemoveComponent<T>() where T : class, IComponent
         {
-            var componentType = typeof(T);
-            if (_components.Remove(componentType))
-            {
-                OnComponentRemoved?.Invoke(this, componentType);
-                return true;
-            }
-            return false;
+            _components.Remove(typeof(T));
         }
+
+        public static readonly Entity Null = new Entity(-1, 0);
+        public bool IsNull => ID < 0;
+        public bool Equals(Entity other)
+        {
+            if (other is null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            return ID == other.ID && Generation == other.Generation;
+        }
+        public override bool Equals(object obj) => obj is Entity other && Equals(other);
+        public override int GetHashCode() => HashCode.Combine(ID, Generation);
+        public static bool operator ==(Entity left, Entity right)
+        {
+            if (left is null) return right is null;
+
+            return left.Equals(right);
+        }
+        public static bool operator !=(Entity left, Entity right) => !left.Equals(right);
+        public override string ToString() => $"Entity({ID}:{Generation})";
     }
 }
