@@ -13,6 +13,12 @@ namespace OVFL.ECS
         private readonly List<IFixedTickSystem> fixedTickSystems = new();
         private readonly List<ITeardownSystem> teardownSystems = new();
 
+        [Obsolete("기본 생성자는 더 이상 사용되지 않습니다. 대신 Context를 전달하는 생성자를 사용하세요.")]
+        public Systems()
+        {
+
+        }
+
         public Systems(Context context)
         {
             this.context = context;
