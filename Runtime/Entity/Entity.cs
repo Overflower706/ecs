@@ -5,14 +5,16 @@ namespace OVFL.ECS
 {
     public class Entity : IEquatable<Entity>
     {
-        private readonly Dictionary<Type, IComponent> _components = new();
         public readonly int ID;
         public readonly int Generation;
+        public bool IsActive { get; internal set; }
+        private readonly Dictionary<Type, IComponent> _components = new();
 
         public Entity(int id, int generation)
         {
             ID = id;
             Generation = generation;
+            IsActive = true;
         }
 
         public T AddComponent<T>(T component) where T : class, IComponent
@@ -50,12 +52,24 @@ namespace OVFL.ECS
             _components.Remove(typeof(T));
         }
 
-        public static readonly Entity Null = new Entity(0, 0);
-        public bool IsNull => ID == 0 && Generation == 0;
-        public bool Equals(Entity other) => ID == other.ID && Generation == other.Generation;
+        public static readonly Entity Null = new Entity(-1, 0);
+        public bool IsNull => ID < 0;
+        public bool Equals(Entity other)
+        {
+            if (other is null) return false;
+
+            if (ReferenceEquals(this, other)) return true;
+
+            return ID == other.ID && Generation == other.Generation;
+        }
         public override bool Equals(object obj) => obj is Entity other && Equals(other);
         public override int GetHashCode() => HashCode.Combine(ID, Generation);
-        public static bool operator ==(Entity left, Entity right) => left.Equals(right);
+        public static bool operator ==(Entity left, Entity right)
+        {
+            if (left is null) return right is null;
+
+            return left.Equals(right);
+        }
         public static bool operator !=(Entity left, Entity right) => !left.Equals(right);
         public override string ToString() => $"Entity({ID}:{Generation})";
     }

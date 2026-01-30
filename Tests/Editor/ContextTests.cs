@@ -1,220 +1,104 @@
 using NUnit.Framework;
 using OVFL.ECS;
-using System.Linq;
 
-namespace Test.OVFL.ECS
+namespace Test
 {
-    /// <summary>
-    /// Context 클래스에 대한 테스트
-    /// </summary>
     [TestFixture]
     public class ContextTests
     {
-        // 테스트용 컴포넌트
-        private class TestComponent : IComponent
-        {
-            public string Data { get; set; }
-
-            public TestComponent(string data = "Test")
-            {
-                Data = data;
-            }
-        }
-
         private Context _context;
 
         [SetUp]
-        public void SetUp()
+        public void Setup()
         {
             _context = new Context();
         }
 
         [Test]
-        public void CreateEntity_ShouldCreateNewEntity()
+        public void CreateEntity_ShouldAssignCorrectIDAndGeneration()
         {
-            // Act
             var entity = _context.CreateEntity();
 
-            // Assert
-            Assert.IsNotNull(entity, "생성된 엔티티는 null이 아니어야 합니다");
-            Assert.Greater(entity.ID, 0, "엔티티 ID는 0보다 커야 합니다");
+            Assert.AreEqual(0, entity.ID);
+            Assert.AreEqual(1, entity.Generation); // 1세대부터 시작
+            Assert.IsTrue(_context.IsAlive(entity));
         }
 
         [Test]
-        public void CreateEntity_ShouldAssignUniqueIDs()
+        public void DestroyEntity_ShouldMakeEntityDead()
         {
-            // Act
-            var entity1 = _context.CreateEntity();
-            var entity2 = _context.CreateEntity();
-            var entity3 = _context.CreateEntity();
-
-            // Assert
-            Assert.AreNotEqual(entity1.ID, entity2.ID, "각 엔티티는 고유한 ID를 가져야 합니다");
-            Assert.AreNotEqual(entity2.ID, entity3.ID, "각 엔티티는 고유한 ID를 가져야 합니다");
-            Assert.AreNotEqual(entity1.ID, entity3.ID, "각 엔티티는 고유한 ID를 가져야 합니다");
-        }
-
-        [Test]
-        public void CreateEntity_ShouldAssignIncrementalIDs()
-        {
-            // Act
-            var entity1 = _context.CreateEntity();
-            var entity2 = _context.CreateEntity();
-
-            // Assert
-            Assert.AreEqual(entity1.ID + 1, entity2.ID, "엔티티 ID는 순차적으로 증가해야 합니다");
-        }
-
-        [Test]
-        public void CreateEntity_ShouldAddToEntityList()
-        {
-            // Act
             var entity = _context.CreateEntity();
+            bool result = _context.DestroyEntity(entity);
 
-            // Assert
-            var entities = _context.GetEntities();
-            Assert.Contains(entity, entities.ToList(), "생성된 엔티티는 엔티티 목록에 포함되어야 합니다");
+            Assert.IsTrue(result);
+            Assert.IsFalse(_context.IsAlive(entity));
+            Assert.IsFalse(entity.IsActive); // Entity 객체 내부 상태도 변경
         }
 
         [Test]
-        public void GetEntities_InitiallyEmpty()
+        public void CreateEntity_ShouldReuseID_WithIncrementedGeneration()
         {
-            // Act
-            var entities = _context.GetEntities();
+            // 1. 생성 후 삭제
+            var e1 = _context.CreateEntity(); // ID: 0, Gen: 1
+            int oldId = e1.ID;
+            _context.DestroyEntity(e1);
 
-            // Assert
-            Assert.IsNotNull(entities, "엔티티 목록은 null이 아니어야 합니다");
-            Assert.AreEqual(0, entities.Count, "초기 엔티티 목록은 비어있어야 합니다");
+            // 2. 다시 생성 (ID 재사용 확인)
+            var e2 = _context.CreateEntity(); // ID: 0, Gen: 2 (예상)
+
+            Assert.AreEqual(oldId, e2.ID);
+            Assert.AreNotEqual(e1.Generation, e2.Generation);
+            Assert.AreEqual(e1.Generation + 1, e2.Generation);
         }
 
         [Test]
-        public void GetEntities_ShouldReturnReadOnlyList()
+        public void OldEntityReference_ShouldNotBeAlive_AfterReuse()
         {
-            // Act
-            var entities = _context.GetEntities();
+            // "죽은 엔티티 참조 문제" 방지 테스트
+            var oldEntity = _context.CreateEntity(); // ID: 0, Gen: 1
+            _context.DestroyEntity(oldEntity);
 
-            // Assert
-            Assert.IsInstanceOf<System.Collections.Generic.IReadOnlyList<Entity>>(entities, "엔티티 목록은 읽기 전용이어야 합니다");
+            var newEntity = _context.CreateEntity(); // ID: 0, Gen: 2
+
+            // oldEntity 변수는 여전히 ID 0을 가리키지만, 세대가 다름
+            Assert.IsFalse(_context.IsAlive(oldEntity));
+            Assert.IsTrue(_context.IsAlive(newEntity));
         }
 
         [Test]
-        public void GetEntities_ShouldContainAllCreatedEntities()
+        public void DestroyEntity_SwapAndPop_ShouldKeepOtherEntitiesValid()
         {
-            // Arrange
-            var entity1 = _context.CreateEntity();
-            var entity2 = _context.CreateEntity();
-            var entity3 = _context.CreateEntity();
+            // Sparse Set 삭제 로직 검증 (중간 삭제 시 인덱스 꼬임 방지)
+            var e1 = _context.CreateEntity(); // ID 0
+            var e2 = _context.CreateEntity(); // ID 1 (삭제 대상)
+            var e3 = _context.CreateEntity(); // ID 2 (맨 뒤)
 
-            // Act
-            var entities = _context.GetEntities();
+            _context.DestroyEntity(e2);
 
-            // Assert
-            Assert.AreEqual(3, entities.Count, "생성된 모든 엔티티가 목록에 포함되어야 합니다");
-            Assert.Contains(entity1, entities.ToList(), "첫 번째 엔티티가 목록에 포함되어야 합니다");
-            Assert.Contains(entity2, entities.ToList(), "두 번째 엔티티가 목록에 포함되어야 합니다");
-            Assert.Contains(entity3, entities.ToList(), "세 번째 엔티티가 목록에 포함되어야 합니다");
+            // e2는 죽어야 함
+            Assert.IsFalse(_context.IsAlive(e2));
+
+            // e1, e3는 여전히 살아있고 데이터가 올바른지 확인
+            Assert.IsTrue(_context.IsAlive(e1));
+            Assert.IsTrue(_context.IsAlive(e3));
+
+            // 내부적으로 e3가 e2의 자리로 이동했겠지만, 사용자 입장에선 ID로 조회 가능해야 함
+            var retrievedE3 = _context.GetEntity(e3.ID);
+            Assert.AreEqual(e3, retrievedE3);
         }
 
         [Test]
-        public void DestroyEntity_WhenExists_ShouldReturnTrue()
+        public void Resize_ShouldHandleMoreThan1024Entities()
         {
-            // Arrange
-            var entity = _context.CreateEntity();
+            // 배열 확장 테스트
+            for (int i = 0; i < 1500; i++)
+            {
+                _context.CreateEntity();
+            }
 
-            // Act
-            var destroyed = _context.DestroyEntity(entity);
-
-            // Assert
-            Assert.IsTrue(destroyed, "존재하는 엔티티 제거 시 true를 반환해야 합니다");
-        }
-
-        [Test]
-        public void DestroyEntity_WhenExists_ShouldRemoveFromList()
-        {
-            // Arrange
-            var entity1 = _context.CreateEntity();
-            var entity2 = _context.CreateEntity();
-
-            // Act
-            _context.DestroyEntity(entity1);
-
-            // Assert
-            var entities = _context.GetEntities();
-            Assert.AreEqual(1, entities.Count, "엔티티가 목록에서 제거되어야 합니다");
-            Assert.IsFalse(entities.Contains(entity1), "제거된 엔티티는 목록에 포함되지 않아야 합니다");
-            Assert.IsTrue(entities.Contains(entity2), "제거되지 않은 엔티티는 목록에 남아있어야 합니다");
-        }
-
-        [Test]
-        public void DestroyEntity_WhenNotExists_ShouldReturnFalse()
-        {
-            // Arrange
-            var externalEntity = new Entity(999, 0); // Context가 생성하지 않은 엔티티
-
-            // Act
-            var destroyed = _context.DestroyEntity(externalEntity);
-
-            // Assert
-            Assert.IsFalse(destroyed, "존재하지 않는 엔티티 제거 시 false를 반환해야 합니다");
-        }
-
-        [Test]
-        public void DestroyEntity_MultipleEntities_ShouldWorkCorrectly()
-        {
-            // Arrange
-            var entity1 = _context.CreateEntity();
-            var entity2 = _context.CreateEntity();
-            var entity3 = _context.CreateEntity();
-
-            // Act
-            var destroyed1 = _context.DestroyEntity(entity1);
-            var destroyed3 = _context.DestroyEntity(entity3);
-
-            // Assert
-            Assert.IsTrue(destroyed1, "첫 번째 엔티티 제거가 성공해야 합니다");
-            Assert.IsTrue(destroyed3, "세 번째 엔티티 제거가 성공해야 합니다");
-
-            var entities = _context.GetEntities();
-            Assert.AreEqual(1, entities.Count, "하나의 엔티티만 남아있어야 합니다");
-            Assert.IsTrue(entities.Contains(entity2), "두 번째 엔티티만 남아있어야 합니다");
-        }
-
-        [Test]
-        public void Context_EntityLifecycle_Integration()
-        {
-            // Arrange & Act
-            var entity = _context.CreateEntity();
-            entity.AddComponent(new TestComponent("ContextTest"));
-
-            // 엔티티가 컨텍스트와 독립적으로 작동하는지 확인
-            var component = entity.GetComponent<TestComponent>();
-
-            // Assert
-            Assert.IsNotNull(component, "엔티티의 컴포넌트가 정상적으로 작동해야 합니다");
-            Assert.AreEqual("ContextTest", component.Data, "컴포넌트 데이터가 올바르게 보존되어야 합니다");
-
-            // 엔티티 제거 후에도 엔티티 자체는 여전히 유효함
-            _context.DestroyEntity(entity);
-            Assert.IsNotNull(entity.GetComponent<TestComponent>(), "제거된 엔티티의 컴포넌트는 여전히 접근 가능해야 합니다");
-        }
-
-        [Test]
-        public void Context_MultipleContexts_ShouldBeIndependent()
-        {
-            // Arrange
-            var context2 = new Context();
-
-            // Act
-            var entity1 = _context.CreateEntity();
-            var entity2 = context2.CreateEntity();
-
-            // Assert
-            Assert.AreEqual(1, _context.GetEntities().Count, "첫 번째 컨텍스트는 하나의 엔티티를 가져야 합니다");
-            Assert.AreEqual(1, context2.GetEntities().Count, "두 번째 컨텍스트는 하나의 엔티티를 가져야 합니다");
-
-            // 서로 다른 컨텍스트의 엔티티는 서로 영향을 주지 않음
-            Assert.IsFalse(_context.GetEntities().Contains(entity2), "다른 컨텍스트의 엔티티는 포함되지 않아야 합니다");
-            Assert.IsFalse(context2.GetEntities().Contains(entity1), "다른 컨텍스트의 엔티티는 포함되지 않아야 합니다");
+            var lastEntity = _context.CreateEntity();
+            Assert.AreEqual(1500, lastEntity.ID);
+            Assert.IsTrue(_context.IsAlive(lastEntity));
         }
     }
 }

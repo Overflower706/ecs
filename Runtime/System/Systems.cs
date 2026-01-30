@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace OVFL.ECS
@@ -12,9 +13,13 @@ namespace OVFL.ECS
         private readonly List<IFixedTickSystem> fixedTickSystems = new();
         private readonly List<ITeardownSystem> teardownSystems = new();
 
-        /// <summary>
-        /// Context를 설정합니다
-        /// </summary>
+        public Systems(Context context)
+        {
+            this.context = context;
+        }
+
+        // TODO : v1.6.0에서 제거
+        [Obsolete("SetContext는 더 이상 사용되지 않습니다. 대신 Systems 생성자로 Context를 전달하세요.")]
         public void SetContext(Context context)
         {
             this.context = context;
@@ -26,9 +31,6 @@ namespace OVFL.ECS
             }
         }
 
-        /// <summary>
-        /// System을 추가합니다
-        /// </summary>
         public Systems AddSystem(ISystem system)
         {
             allSystems.Add(system);
@@ -53,9 +55,6 @@ namespace OVFL.ECS
             return this;
         }
 
-        /// <summary>
-        /// System을 제네릭으로 추가합니다
-        /// </summary>
         public Systems AddSystem<T>() where T : ISystem, new()
         {
             var system = new T();

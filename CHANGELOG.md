@@ -2,8 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.0] - 2025-08-08
+## [1.5.0] - 2026-01-30
 
+### Changed
+- 0번째 Entity 또는 별도의 null Entity 처리 추가
+- Entity Pooling 기능 추가
+- Try Get Component를 추가
+- Systems에 Context를 받는 생성자가 추가됐습니다. 이제 SetContext 대신 Systems 생성자를 사용해야합니다.
+- Reactive 기능 제거
+
+## [1.3.0] - 2025-08-08
 
 ### Changed
 - **Entity.AddComponent() 세부 구현 변경**: 런타임 타입 기반으로 추적됨
