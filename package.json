@@ -1,8 +1,8 @@
 {
     "name": "com.ovfl.ecs",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "displayName": "OVFL ECS",
-    "description": "Entitas 기반 학습용 ECS 구현체",
+    "description": "학습용 ECS 구현체",
     "unity": "6000.1",
     "unityRelease": "0f1",
     "documentationUrl": "https://github.com/Overflower706/ecs#readme",
