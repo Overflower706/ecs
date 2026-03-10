@@ -67,6 +67,38 @@ namespace OVFL.ECS
             return AddSystem(system);
         }
 
+        public Systems UnregisterSystem(ISystem system)
+        {
+            allSystems.Remove(system);
+
+            if (system is ISetupSystem setupSystem)
+                setupSystems.Remove(setupSystem);
+
+            if (system is ITickSystem tickSystem)
+                tickSystems.Remove(tickSystem);
+
+            if (system is ICleanupSystem cleanupSystem)
+                cleanupSystems.Remove(cleanupSystem);
+
+            if (system is IFixedTickSystem fixedTickSystem)
+                fixedTickSystems.Remove(fixedTickSystem);
+
+            if (system is ITeardownSystem teardownSystem)
+                teardownSystems.Remove(teardownSystem);
+
+            return this;
+        }
+
+        public void UnregisterAll()
+        {
+            allSystems.Clear();
+            setupSystems.Clear();
+            tickSystems.Clear();
+            cleanupSystems.Clear();
+            fixedTickSystems.Clear();
+            teardownSystems.Clear();
+        }
+
         /// <summary>
         /// 모든 Setup System을 실행합니다 (초기화 시 한 번)
         /// </summary>
@@ -113,6 +145,7 @@ namespace OVFL.ECS
 
         /// <summary>
         /// 모든 Teardown System을 실행합니다 (마무리 시 한 번)
+        /// 실행 완료 후 모든 시스템이 자동으로 해제됩니다.
         /// </summary>
         public void Teardown()
         {
@@ -120,6 +153,8 @@ namespace OVFL.ECS
             {
                 system.Teardown();
             }
+
+            UnregisterAll();
         }
     }
 }
