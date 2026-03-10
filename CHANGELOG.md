@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.4] - 2026-03-10
+
+### Added
+- **Systems.UnregisterSystem()** 메서드 추가 — 특정 시스템을 모든 라이프사이클 리스트에서 제거
+  ```csharp
+  systems.UnregisterSystem(mySystem);
+  ```
+- **Systems.UnregisterAll()** 메서드 추가 — 등록된 모든 시스템을 일괄 해제
+  ```csharp
+  systems.UnregisterAll();
+  ```
+- **Teardown() 자동 Unregister**: `Teardown()` 실행 완료 후 `UnregisterAll()`이 자동으로 호출되어 모든 시스템이 해제됨
+
 ## [1.5.0] - 2026-01-30
 
 ### Changed
