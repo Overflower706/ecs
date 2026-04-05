@@ -60,5 +60,55 @@ namespace Test
             // HashSet 등에서 키로 쓸 때 중요
             Assert.AreEqual(e1.GetHashCode(), e2.GetHashCode());
         }
+
+        [Test]
+        public void TryGetComponent_ShouldReturnTrue_WhenComponentExists()
+        {
+            var entity = new Entity(0, 1);
+            var pos = entity.AddComponent<Position>();
+            pos.x = 5;
+
+            var result = entity.TryGetComponent<Position>(out var retrieved);
+
+            Assert.IsTrue(result);
+            Assert.AreSame(pos, retrieved);
+        }
+
+        [Test]
+        public void TryGetComponent_ShouldReturnFalse_WhenComponentMissing()
+        {
+            var entity = new Entity(0, 1);
+
+            var result = entity.TryGetComponent<Position>(out var retrieved);
+
+            Assert.IsFalse(result);
+            Assert.IsNull(retrieved);
+        }
+
+        [Test]
+        public void AddComponent_ShouldOverwrite_WhenSameTypeRegisteredAgain()
+        {
+            var entity = new Entity(0, 1);
+            var first = entity.AddComponent<Position>();
+            var second = new Position();
+            entity.AddComponent<Position>(second);
+
+            var retrieved = entity.GetComponent<Position>();
+
+            Assert.AreSame(second, retrieved);
+            Assert.AreNotSame(first, retrieved);
+        }
+
+        [Test]
+        public void EntityNull_IsNull_ShouldBeTrue()
+        {
+            Assert.IsTrue(Entity.Null.IsNull);
+        }
+
+        [Test]
+        public void EntityNull_IsActive_ShouldBeFalse()
+        {
+            Assert.IsFalse(Entity.Null.IsActive);
+        }
     }
 }

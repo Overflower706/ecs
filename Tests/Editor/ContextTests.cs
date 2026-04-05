@@ -148,5 +148,12 @@ namespace Test
             Assert.AreEqual(e1.ID, e2.ID);
             Assert.AreNotEqual(e1.Generation, e2.Generation);
         }
+
+        [Test]
+        public void GetEntity_ShouldReturnNull_WhenIDIsInvalid()
+        {
+            Assert.IsNull(_context.GetEntity(-1));
+            Assert.IsNull(_context.GetEntity(9999));
+        }
     }
 }

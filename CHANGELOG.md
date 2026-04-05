@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.6] - 2026-04-06
+
+### Fixed
+- **Entity.AddComponent&lt;T&gt;(T component) 타입 키 불일치 수정** — 런타임 타입(`component.GetType()`) 대신 컴파일 타임 타입(`typeof(T)`)으로 저장하도록 변경. `GetComponent`, `HasComponent`, `RemoveComponent`와 일관성 유지.
+- **Entity.Null.IsActive 의미 불일치 수정** — `Entity.Null` 생성 시 `IsActive = false`로 초기화. null 객체가 활성 상태로 표시되던 논리적 모순 해결.
+
+### Tests
+- `TryGetComponent` 성공/실패 케이스 추가
+- `AddComponent` 같은 타입 재등록(덮어쓰기) 케이스 추가
+- `Entity.Null` — `IsNull`, `IsActive` 케이스 추가
+- `Context.GetEntity` 잘못된 ID → null 반환 케이스 추가
+- `ICleanupSystem` 라이프사이클 케이스 추가
+- `IFixedTickSystem` 라이프사이클 케이스 추가
+
 ## [1.5.5] - 2026-04-06
 
 ### Added

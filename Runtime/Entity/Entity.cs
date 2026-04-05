@@ -19,8 +19,7 @@ namespace OVFL.ECS
 
         public T AddComponent<T>(T component) where T : class, IComponent
         {
-            var componentType = component.GetType();
-            _components[componentType] = component;
+            _components[typeof(T)] = component;
             return component;
         }
 
@@ -52,7 +51,7 @@ namespace OVFL.ECS
             _components.Remove(typeof(T));
         }
 
-        public static readonly Entity Null = new Entity(-1, 0);
+        public static readonly Entity Null = new Entity(-1, 0) { IsActive = false };
         public bool IsNull => ID < 0;
         public bool Equals(Entity other)
         {

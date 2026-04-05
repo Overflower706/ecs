@@ -38,6 +38,24 @@ namespace Test
             public void Teardown() => TeardownCount++;
         }
 
+        class MockCleanupSystem : ITickSystem, ICleanupSystem
+        {
+            public Context Context { get; set; }
+            public int TickCount = 0;
+            public int CleanupCount = 0;
+
+            public void Tick() => TickCount++;
+            public void Cleanup() => CleanupCount++;
+        }
+
+        class MockFixedTickSystem : IFixedTickSystem
+        {
+            public Context Context { get; set; }
+            public int FixedTickCount = 0;
+
+            public void FixedTick() => FixedTickCount++;
+        }
+
         [Test]
         public void SetContext_ShouldInjectContextToAllSystems()
         {
@@ -104,6 +122,35 @@ namespace Test
             systems.Tick();
 
             Assert.AreEqual(0, log.Count);
+        }
+
+        [Test]
+        public void CleanupSystem_ShouldRunAfterEachTick()
+        {
+            var context = new Context();
+            var systems = new Systems(context);
+            var mockSys = new MockCleanupSystem();
+
+            systems.AddSystem(mockSys);
+            systems.Tick();
+            systems.Tick();
+
+            Assert.AreEqual(2, mockSys.TickCount);
+            Assert.AreEqual(2, mockSys.CleanupCount);
+        }
+
+        [Test]
+        public void FixedTickSystem_ShouldRunOnFixedTick()
+        {
+            var context = new Context();
+            var systems = new Systems(context);
+            var mockSys = new MockFixedTickSystem();
+
+            systems.AddSystem(mockSys);
+            systems.FixedTick();
+            systems.FixedTick();
+
+            Assert.AreEqual(2, mockSys.FixedTickCount);
         }
 
         [Test]
