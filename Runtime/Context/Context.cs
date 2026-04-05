@@ -107,28 +107,6 @@ namespace OVFL.ECS
             return (entity.Generation == _generations[id]) ? entity : null;
         }
 
-        // TODO : v1.6.0에서 제거
-        [Obsolete("GetEntitiesWithComponent는 더 이상 사용되지 않습니다.")]
-        public List<Entity> GetEntitiesWithComponent<T>() where T : class, IComponent
-        {
-            var result = new List<Entity>();
-            foreach (var entity in _entities)
-            {
-                if (entity.HasComponent<T>())
-                {
-                    result.Add(entity);
-                }
-            }
-            return result;
-        }
-
-        // TODO : v1.6.0에서 제거
-        [Obsolete("GetEntities는 더 이상 사용되지 않습니다. 대신 AllEntities를 사용하세요.")]
-        public List<Entity> GetEntities()
-        {
-            return new List<Entity>(_entities);
-        }
-
         public bool IsAlive(Entity entity)
         {
             if (entity == null || !entity.IsActive) return false;

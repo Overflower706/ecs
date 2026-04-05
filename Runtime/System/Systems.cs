@@ -13,28 +13,9 @@ namespace OVFL.ECS
         private readonly List<IFixedTickSystem> fixedTickSystems = new();
         private readonly List<ITeardownSystem> teardownSystems = new();
 
-        [Obsolete("기본 생성자는 더 이상 사용되지 않습니다. 대신 Context를 전달하는 생성자를 사용하세요.")]
-        public Systems()
-        {
-
-        }
-
         public Systems(Context context)
         {
             this.context = context;
-        }
-
-        // TODO : v1.6.0에서 제거
-        [Obsolete("SetContext는 더 이상 사용되지 않습니다. 대신 Systems 생성자로 Context를 전달하세요.")]
-        public void SetContext(Context context)
-        {
-            this.context = context;
-
-            // 기존 시스템들에 Context 할당
-            foreach (var system in allSystems)
-            {
-                system.Context = context;
-            }
         }
 
         public Systems AddSystem(ISystem system)

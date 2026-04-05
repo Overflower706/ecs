@@ -3,10 +3,10 @@
 ## 다음 버전 (v1.6.0)
 
 ### Breaking Changes
-- [ ] `Systems()` 기본 생성자 제거
-- [ ] `Systems.SetContext()` 제거
-- [ ] `Context.GetEntities()` 제거
-- [ ] `Context.GetEntitiesWithComponent<T>()` 제거
+- [x] `Systems()` 기본 생성자 제거 *(v1.6.0)*
+- [x] `Systems.SetContext()` 제거 *(v1.6.0)*
+- [x] `Context.GetEntities()` 제거 *(v1.6.0)*
+- [x] `Context.GetEntitiesWithComponent<T>()` 제거 *(v1.6.0)*
 
 ## 버그 / 설계 개선
 

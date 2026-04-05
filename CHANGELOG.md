@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 - **IsAlive() 조기 반환** — `IsActive=false`이면 즉시 false 반환
 - **Systems.Tick() / Systems.FixedTick()** — 모든 시스템 실행 후 `FlushDestroyQueue()` 자동 호출
 
-## [1.6.0] - Unreleased
+## [1.6.0] - 2026-04-06
 
 ### Removed (Breaking Changes)
 - **Systems() 기본 생성자 제거** — `Systems(Context context)` 생성자를 사용하세요.
