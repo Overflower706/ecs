@@ -39,10 +39,11 @@ namespace Test
         [Test]
         public void CreateEntity_ShouldReuseID_WithIncrementedGeneration()
         {
-            // 1. 생성 후 삭제
+            // 1. 생성 후 삭제 + 큐 플러시
             var e1 = _context.CreateEntity(); // ID: 0, Gen: 1
             int oldId = e1.ID;
             _context.DestroyEntity(e1);
+            _context.FlushDestroyQueue(); // ID가 재사용 풀에 들어감
 
             // 2. 다시 생성 (ID 재사용 확인)
             var e2 = _context.CreateEntity(); // ID: 0, Gen: 2 (예상)
