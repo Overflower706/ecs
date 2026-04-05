@@ -7,7 +7,7 @@ ECS의 장점은 여러 가지가 있습니다.<br>
 
 ## 🎯 프로젝트 목표
 
-- Context가 Entity 배열을 갖고 있고, System이 해당 배열을 순회하면서 Component를 처리해나간다는 것이 선명하게 드러날것
+- Context가 Entity 배열을 갖고 있고, System이 해당 배열을 순회하면서 Component를 처리해나간다는 것이 선명하게 드러날 것
 - Entity는 ID 값만을 갖고 있고 여러 Component를 담는 그릇임이 코드상에서 나타날 것
 - 그 결과, 데이터와 기능의 분리가 어떻게 동작되는지 이해하는데에 도움이 됐으면 합니다.
 
@@ -40,7 +40,7 @@ git 주소 끝에 해당 버전을 입력하면 됩니다.
 ```json
 {
   "dependencies": {
-    "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git#v1.0.0"
+    "com.ovfl.ecs": "https://github.com/Overflower706/ecs.git#v1.5.4"
   }
 }
 ```
@@ -55,13 +55,13 @@ public class Entity
 {
     public readonly int ID;
     public readonly int Generation;
-    private readonly Dictionary<Type, IComponent> _components
-    public readonly IsActive;
+    public bool IsActive { get; internal set; }
+    private readonly Dictionary<Type, IComponent> _components;
 }
 
 var entity = context.CreateEntity();
-entity.AddComponent(new PositionComponent(10, 20));
-entity.AddComponent(new VelocityComponent(1, 0));
+entity.AddComponent(new PositionComponent { X = 10, Y = 20 });
+entity.AddComponent(new VelocityComponent { VX = 1, VY = 0 });
 ```
 
 - 고유 ID를 가진 객체
@@ -91,9 +91,11 @@ public class PositionComponent : IComponent
 ```csharp
 public class MovementSystem : ITickSystem
 {
-    public void Tick(Context context)
+    public Context Context { get; set; }
+
+    public void Tick()
     {
-        foreach (var entity in context.GetEntities())
+        foreach (var entity in Context.AllEntities)
         {
             var position = entity.GetComponent<PositionComponent>();
             var velocity = entity.GetComponent<VelocityComponent>();
@@ -113,7 +115,7 @@ public class MovementSystem : ITickSystem
   - `ISetupSystem`: 초기화 시 한 번 실행
   - `ITickSystem`: 매 프레임 실행
   - `ICleanupSystem`: Tick 이후 정리 작업
-  - 'IFixedTickSystem' : 일정 주기(Unity의 FixedUpdate)마다 실행
+  - `IFixedTickSystem`: 일정 주기(Unity의 FixedUpdate)마다 실행
   - `ITeardownSystem`: 마무리 시 한 번 실행
 
 #### 4. **Context (컨텍스트)**
@@ -121,6 +123,9 @@ public class MovementSystem : ITickSystem
 var context = new Context();
 var entity = context.CreateEntity();
 context.DestroyEntity(entity);
+
+// 모든 엔티티 순회
+foreach (var e in context.AllEntities) { ... }
 ```
 
 - 엔티티들을 관리하는 월드
@@ -130,13 +135,13 @@ context.DestroyEntity(entity);
 #### 5. **Systems (시스템 관리자)**
 ```csharp
 var systems = new Systems(context)
-    .Add(new MovementSystem())
-    .Add(new RenderSystem());
+    .AddSystem(new MovementSystem())
+    .AddSystem(new RenderSystem());
 
-systems.Setup(context);    // 초기화
-systems.Tick(context);     // 매 프레임
-systems.Cleanup(context);  // 정리
-systems.Teardown(context); // 마무리
+systems.Setup();    // 초기화
+systems.Tick();     // 매 프레임
+systems.Cleanup();  // 정리
+systems.Teardown(); // 마무리 (자동으로 UnregisterAll 호출)
 ```
 
 - System을 일괄적으로 관리하기 위한 클래스입니다.
@@ -164,11 +169,13 @@ public class VelocityComponent : IComponent
 // 2. 시스템 정의
 public class MovementSystem : ITickSystem
 {
-    public void Tick(Context context)
+    public Context Context { get; set; }
+
+    public void Tick()
     {
         // 일반적인 ECS에서는 이를 쉽게 할 수 있도록 쿼리(Query)를 지원합니다.
         // 다만 그것이 'Context 내 배열로 존재하는 Entity를 순회하며 처리'라는 구조를 가린다고 생각해서 이를 유지합니다.
-        foreach (var entity in context.GetEntities())
+        foreach (var entity in Context.AllEntities)
         {
             var position = entity.GetComponent<PositionComponent>();
             var velocity = entity.GetComponent<VelocityComponent>();
@@ -194,7 +201,7 @@ public class GameECSRunner : MonoBehaviour
         _context = new Context();
         _systems = new Systems(_context);
 
-        _systems.Add(new MovementSystem());
+        _systems.AddSystem(new MovementSystem());
         
         // 엔티티 생성
         var player = _context.CreateEntity();
@@ -214,7 +221,7 @@ public class GameECSRunner : MonoBehaviour
 
     void FixedUpdate()
     {
-        _systems.FixedTick()
+        _systems.FixedTick();
     }
     
     void OnDestroy()
@@ -237,33 +244,29 @@ Unity Test Runner 프레임워크를 사용합니다.
 
 ### 테스트 구조
 ```
-Assets/Tests/Editor/
-├── IComponentTests.cs        # 컴포넌트 인터페이스 테스트
-├── EntityTests.cs           # 엔티티 기능 테스트
+Tests/Editor/
+├── EntityComponentTests.cs  # 엔티티 및 컴포넌트 기능 테스트
 ├── ContextTests.cs          # 컨텍스트 기능 테스트
 ├── SystemsTests.cs          # 시스템 관리 테스트
-└── ECSIntegrationTests.cs   # 통합 테스트
+└── IntegrationTest.cs       # 통합 테스트
 ```
 
 ## 📁 프로젝트 구조
 
 ```
-Assets/Scripts/
+Runtime/
 ├── Component/
 │   └── IComponent.cs        # 컴포넌트 인터페이스
 ├── Entity/
-│   └── Entity.cs           # 엔티티 클래스
+│   └── Entity.cs            # 엔티티 클래스
 ├── Context/
-│   └── Context.cs          # 컨텍스트 클래스
-├── System/
-│   ├── Interfaces/
-│   │   └── ISystem.cs      # 시스템 인터페이스들
-│   └── Systems.cs          # 시스템 관리 클래스
-└── OVFL.ECS.asmdef         # 어셈블리 정의
+│   └── Context.cs           # 컨텍스트 클래스
+└── System/
+    ├── ISystem.cs            # 시스템 인터페이스들
+    └── Systems.cs            # 시스템 관리 클래스
 
-Assets/Tests/Editor/
-├── *.cs                    # 테스트 파일들
-└── Editor.asmdef          # 테스트 어셈블리 정의
+Tests/Editor/
+├── *.cs                     # 테스트 파일들
 ```
 
 ## 🎮 Unity 통합
@@ -273,16 +276,8 @@ Assets/Tests/Editor/
 - **Editor**: 테스트 전용 (Edit Mode)
 
 ### 사용 요구사항
-- Unity 2022.3 LTS 이상
+- Unity 6000.1 이상
 - .NET Standard 2.1
-
-## 🔧 향후 계획
-
-### 예상 기능들
-- **그룹 시스템**: 특정 컴포넌트 조합을 가진 엔티티 그룹화<br>
-- ~~**이벤트 시스템**: 컴포넌트 추가/제거 이벤트~~ ➡️ 가독성을 크게 해쳐 제거합니다.
-- **쿼리 시스템**: 복잡한 엔티티 검색
-- **성능 최적화**: 메모리 풀링, 캐싱
 
 ## 📄 라이선스
 

@@ -2,6 +2,57 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.5] - 2026-04-06
+
+### Added
+- **Context.FlushDestroyQueue()** 메서드 추가 — 삭제 큐에 쌓인 엔티티를 즉시 일괄 제거
+  ```csharp
+  context.FlushDestroyQueue(); // Systems 없이 직접 사용 시 수동 호출
+  ```
+
+### Changed
+- **DestroyEntity() 지연 삭제로 변경** — 호출 즉시 삭제하지 않고 큐에 등록 후 `Tick()` / `FixedTick()` 완료 시 자동 처리
+  ```csharp
+  // 이제 Tick 내에서 안전하게 호출 가능
+  foreach (var entity in Context.AllEntities)
+  {
+      if (isDead) Context.DestroyEntity(entity); // 예외 없음
+  }
+  ```
+- **AllEntities 필터링** — `IsActive=false`인 엔티티(삭제 예약된 엔티티) 제외
+- **IsAlive() 조기 반환** — `IsActive=false`이면 즉시 false 반환
+- **Systems.Tick() / Systems.FixedTick()** — 모든 시스템 실행 후 `FlushDestroyQueue()` 자동 호출
+
+## [1.6.0] - Unreleased
+
+### Removed (Breaking Changes)
+- **Systems() 기본 생성자 제거** — `Systems(Context context)` 생성자를 사용하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var systems = new Systems();
+  systems.SetContext(context);
+  
+  // After
+  var systems = new Systems(context);
+  ```
+- **Systems.SetContext() 제거** — 생성자로 Context를 전달하세요.
+- **Context.GetEntities() 제거** — `Context.AllEntities`를 사용하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var entities = context.GetEntities();
+  
+  // After
+  var entities = context.AllEntities;
+  ```
+- **Context.GetEntitiesWithComponent\<T\>() 제거** — `AllEntities`를 직접 순회하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var players = context.GetEntitiesWithComponent<PlayerComponent>();
+  
+  // After
+  var players = context.AllEntities.Where(e => e.HasComponent<PlayerComponent>());
+  ```
+
 ## [1.5.4] - 2026-03-10
 
 ### Added

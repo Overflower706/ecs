@@ -7,7 +7,16 @@ namespace OVFL.ECS
     {
         private int[] _entityIndices = new int[1024]; // Sparse 배열
         private readonly List<Entity> _entities = new(); // Dense 배열
-        public IEnumerable<Entity> AllEntities => _entities;
+        private readonly List<Entity> _pendingDestroy = new();
+
+        public IEnumerable<Entity> AllEntities
+        {
+            get
+            {
+                foreach (var e in _entities)
+                    if (e.IsActive) yield return e;
+            }
+        }
 
         private readonly Queue<int> _availableIDs = new();
         private readonly List<int> _generations = new();
@@ -55,26 +64,35 @@ namespace OVFL.ECS
         {
             if (!IsAlive(entity)) return false;
 
-            int idToRemove = entity.ID;
-            int indexToRemove = _entityIndices[idToRemove];
-            int lastIndex = _entities.Count - 1;
+            entity.IsActive = false;
+            _pendingDestroy.Add(entity);
+            return true;
+        }
 
-            // Swap & Pop: 맨 뒤의 엔티티를 삭제할 칸으로 이동
-            if (indexToRemove != lastIndex)
+        public void FlushDestroyQueue()
+        {
+            foreach (var entity in _pendingDestroy)
             {
-                Entity lastEntity = _entities[lastIndex];
-                _entities[indexToRemove] = lastEntity;
-                _entityIndices[lastEntity.ID] = indexToRemove;
+                int idToRemove = entity.ID;
+                int indexToRemove = _entityIndices[idToRemove];
+                int lastIndex = _entities.Count - 1;
+
+                // Swap & Pop: 맨 뒤의 엔티티를 삭제할 칸으로 이동
+                if (indexToRemove != lastIndex)
+                {
+                    Entity lastEntity = _entities[lastIndex];
+                    _entities[indexToRemove] = lastEntity;
+                    _entityIndices[lastEntity.ID] = indexToRemove;
+                }
+
+                _entities.RemoveAt(lastIndex);
+                _entityIndices[idToRemove] = -1;
+
+                _generations[idToRemove]++;
+                _availableIDs.Enqueue(idToRemove);
             }
 
-            _entities.RemoveAt(lastIndex);
-            _entityIndices[idToRemove] = -1; // 이제 0번 ID라도 여기서 -1로 밀림
-
-            _generations[idToRemove]++;
-            _availableIDs.Enqueue(idToRemove);
-            entity.IsActive = false;
-
-            return true;
+            _pendingDestroy.Clear();
         }
 
         public Entity GetEntity(int id)
@@ -113,7 +131,7 @@ namespace OVFL.ECS
 
         public bool IsAlive(Entity entity)
         {
-            if (entity == null) return false;
+            if (entity == null || !entity.IsActive) return false;
             if (entity.ID < 0 || entity.ID >= _generations.Count) return false;
             return _generations[entity.ID] == entity.Generation;
         }

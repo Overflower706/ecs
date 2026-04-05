@@ -119,6 +119,8 @@ namespace OVFL.ECS
             {
                 system.Tick();
             }
+
+            context?.FlushDestroyQueue();
         }
 
         /// <summary>
@@ -141,6 +143,8 @@ namespace OVFL.ECS
             {
                 system.FixedTick();
             }
+
+            context?.FlushDestroyQueue();
         }
 
         /// <summary>

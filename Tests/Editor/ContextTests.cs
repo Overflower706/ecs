@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using OVFL.ECS;
 
@@ -99,6 +100,53 @@ namespace Test
             var lastEntity = _context.CreateEntity();
             Assert.AreEqual(1500, lastEntity.ID);
             Assert.IsTrue(_context.IsAlive(lastEntity));
+        }
+
+        [Test]
+        public void DestroyEntity_DuringIteration_ShouldNotThrow()
+        {
+            // 순회 중 삭제 시 예외 발생 여부 테스트
+            _context.CreateEntity();
+            _context.CreateEntity();
+            _context.CreateEntity();
+
+            Assert.DoesNotThrow(() =>
+            {
+                foreach (var entity in _context.AllEntities.ToList())
+                {
+                    _context.DestroyEntity(entity);
+                }
+                _context.FlushDestroyQueue();
+            });
+
+            Assert.IsFalse(_context.AllEntities.Any());
+        }
+
+        [Test]
+        public void DestroyEntity_ShouldBeExcludedFromAllEntities_BeforeFlush()
+        {
+            // DestroyEntity 호출 직후 AllEntities에서 제외되는지 확인
+            var e1 = _context.CreateEntity();
+            var e2 = _context.CreateEntity();
+
+            _context.DestroyEntity(e1);
+
+            var alive = _context.AllEntities.ToList();
+            Assert.IsFalse(alive.Contains(e1));
+            Assert.IsTrue(alive.Contains(e2));
+        }
+
+        [Test]
+        public void FlushDestroyQueue_ShouldReuseID()
+        {
+            // FlushDestroyQueue 후 ID가 재사용되는지 확인
+            var e1 = _context.CreateEntity(); // ID: 0
+            _context.DestroyEntity(e1);
+            _context.FlushDestroyQueue();
+
+            var e2 = _context.CreateEntity(); // ID: 0 재사용
+            Assert.AreEqual(e1.ID, e2.ID);
+            Assert.AreNotEqual(e1.Generation, e2.Generation);
         }
     }
 }
