@@ -14,6 +14,9 @@ namespace OVFL.ECS
         /// <summary>Event 타입 이름 (디버깅용)</summary>
         public string EventTypeName { get; set; }
 
+        /// <summary>FixedUpdate 주기 이벤트 여부. true면 FixedEventCleanupSystem이 처리합니다.</summary>
+        public bool IsFixed { get; set; }
+
 #if UNITY_EDITOR
         /// <summary>Event 생성 위치 StackTrace (에디터 전용)</summary>
         public string StackTrace { get; set; }

@@ -5,11 +5,7 @@ namespace OVFL.ECS
 {
     public static class EventExtensions
     {
-        /// <summary>
-        /// Event Entity를 생성합니다 (내부 전용 - EventPublisherSystem만 호출).
-        /// 직접 호출하지 말고 EventQueueComponent.Enqueue를 사용하세요.
-        /// </summary>
-        public static Entity CreateEvent<T>(this Context context, T eventComponent) where T : EventComponent
+        internal static Entity CreateEvent<T>(this Context context, T eventComponent, bool isFixed = false) where T : EventComponent
         {
             var entity = context.CreateEntity();
             entity.AddComponent(eventComponent);
@@ -17,6 +13,7 @@ namespace OVFL.ECS
             {
                 CreatedTime = Time.time,
                 EventTypeName = typeof(T).Name,
+                IsFixed = isFixed,
 #if UNITY_EDITOR
                 StackTrace = Environment.StackTrace
 #endif

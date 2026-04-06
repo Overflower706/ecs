@@ -52,7 +52,7 @@ namespace OVFL.ECS
             return AddSystem(system);
         }
 
-        public Systems UnregisterSystem(ISystem system)
+        public Systems RemoveSystem(ISystem system)
         {
             allSystems.Remove(system);
 
@@ -77,7 +77,7 @@ namespace OVFL.ECS
             return this;
         }
 
-        public void UnregisterAll()
+        public void RemoveAllSystems()
         {
             allSystems.Clear();
             setupSystems.Clear();
@@ -95,70 +95,61 @@ namespace OVFL.ECS
         {
             foreach (var system in setupSystems)
             {
-                system.Setup();
+                try { system.Setup(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
         }
 
         /// <summary>
-        /// 모든 Tick System을 실행하고, 예외 발생 여부와 무관하게 Cleanup을 보장합니다.
+        /// 모든 Tick System을 실행합니다.
         /// </summary>
         public void Tick()
         {
-            try
+            foreach (var system in tickSystems)
             {
-                foreach (var system in tickSystems)
-                {
-                    system.Tick();
-                }
-            }
-            finally
-            {
-                context?.FlushDestroyQueue();
-                Cleanup();
-                context?.FlushDestroyQueue();
+                try { system.Tick(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
         }
 
         /// <summary>
-        /// 모든 Cleanup System을 실행합니다. Tick() 내부에서 자동 호출됩니다.
+        /// 모든 Cleanup System을 실행합니다. Tick() 이후 직접 호출해야 합니다.
         /// </summary>
         public void Cleanup()
         {
+            context?.FlushDestroyQueue();
             foreach (var system in cleanupSystems)
             {
-                system.Cleanup();
+                try { system.Cleanup(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
+            context?.FlushDestroyQueue();
         }
 
         /// <summary>
-        /// 모든 FixedTick System을 실행하고, 예외 발생 여부와 무관하게 FixedCleanup을 보장합니다.
+        /// 모든 FixedTick System을 실행합니다.
         /// </summary>
         public void FixedTick()
         {
-            try
+            foreach (var system in fixedTickSystems)
             {
-                foreach (var system in fixedTickSystems)
-                {
-                    system.FixedTick();
-                }
-            }
-            finally
-            {
-                context?.FlushDestroyQueue();
-                FixedCleanup();
-                context?.FlushDestroyQueue();
+                try { system.FixedTick(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
         }
 
         /// <summary>
-        /// 모든 FixedCleanup System을 실행합니다. FixedTick() 내부에서 자동 호출됩니다.
+        /// 모든 FixedCleanup System을 실행합니다. FixedTick() 이후 직접 호출해야 합니다.
         /// </summary>
         public void FixedCleanup()
         {
+            context?.FlushDestroyQueue();
             foreach (var system in fixedCleanupSystems)
             {
-                system.FixedCleanup();
+                try { system.FixedCleanup(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
+            context?.FlushDestroyQueue();
         }
 
         /// <summary>
@@ -169,10 +160,11 @@ namespace OVFL.ECS
         {
             foreach (var system in teardownSystems)
             {
-                system.Teardown();
+                try { system.Teardown(); }
+                catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
 
-            UnregisterAll();
+            RemoveAllSystems();
         }
     }
 }

@@ -9,23 +9,8 @@ namespace OVFL.ECS
 
         public void Tick()
         {
-            EventQueueComponent eventQueue = null;
-            foreach (var entity in Context.AllEntities)
-            {
-                if (entity.TryGetComponent<EventQueueComponent>(out var queue))
-                {
-                    eventQueue = queue;
-                    break;
-                }
-            }
-
-            if (eventQueue == null) return;
-
-            while (eventQueue.PendingEvents.Count > 0)
-            {
-                var pendingEvent = eventQueue.PendingEvents.Dequeue();
-                Context.CreateEvent(pendingEvent);
-            }
+            while (Context.PendingEvents.Count > 0)
+                Context.PendingEvents.Dequeue().Invoke();
         }
     }
 }

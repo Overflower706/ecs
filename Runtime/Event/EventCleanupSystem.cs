@@ -11,7 +11,7 @@ namespace OVFL.ECS
         {
             foreach (var entity in Context.AllEntities)
             {
-                if (entity.HasComponent<EventMetadataComponent>())
+                if (entity.TryGetComponent<EventMetadataComponent>(out var meta) && !meta.IsFixed)
                     Context.DestroyEntity(entity);
             }
         }
