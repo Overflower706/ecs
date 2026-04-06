@@ -11,6 +11,7 @@ namespace OVFL.ECS
         private readonly List<ITickSystem> tickSystems = new();
         private readonly List<ICleanupSystem> cleanupSystems = new();
         private readonly List<IFixedTickSystem> fixedTickSystems = new();
+        private readonly List<IFixedCleanupSystem> fixedCleanupSystems = new();
         private readonly List<ITeardownSystem> teardownSystems = new();
 
         public Systems(Context context)
@@ -35,6 +36,9 @@ namespace OVFL.ECS
 
             if (system is IFixedTickSystem fixedTickSystem)
                 fixedTickSystems.Add(fixedTickSystem);
+
+            if (system is IFixedCleanupSystem fixedCleanupSystem)
+                fixedCleanupSystems.Add(fixedCleanupSystem);
 
             if (system is ITeardownSystem teardownSystem)
                 teardownSystems.Add(teardownSystem);
@@ -64,6 +68,9 @@ namespace OVFL.ECS
             if (system is IFixedTickSystem fixedTickSystem)
                 fixedTickSystems.Remove(fixedTickSystem);
 
+            if (system is IFixedCleanupSystem fixedCleanupSystem)
+                fixedCleanupSystems.Remove(fixedCleanupSystem);
+
             if (system is ITeardownSystem teardownSystem)
                 teardownSystems.Remove(teardownSystem);
 
@@ -77,6 +84,7 @@ namespace OVFL.ECS
             tickSystems.Clear();
             cleanupSystems.Clear();
             fixedTickSystems.Clear();
+            fixedCleanupSystems.Clear();
             teardownSystems.Clear();
         }
 
@@ -92,20 +100,27 @@ namespace OVFL.ECS
         }
 
         /// <summary>
-        /// 모든 Tick System을 실행합니다 (매 프레임)
+        /// 모든 Tick System을 실행하고, 예외 발생 여부와 무관하게 Cleanup을 보장합니다.
         /// </summary>
         public void Tick()
         {
-            foreach (var system in tickSystems)
+            try
             {
-                system.Tick();
+                foreach (var system in tickSystems)
+                {
+                    system.Tick();
+                }
             }
-
-            context?.FlushDestroyQueue();
+            finally
+            {
+                context?.FlushDestroyQueue();
+                Cleanup();
+                context?.FlushDestroyQueue();
+            }
         }
 
         /// <summary>
-        /// 모든 Cleanup System을 실행합니다 (Tick 이후)
+        /// 모든 Cleanup System을 실행합니다. Tick() 내부에서 자동 호출됩니다.
         /// </summary>
         public void Cleanup()
         {
@@ -116,16 +131,34 @@ namespace OVFL.ECS
         }
 
         /// <summary>
-        /// 모든 FixedTick System을 실행합니다 (고정 시간)
+        /// 모든 FixedTick System을 실행하고, 예외 발생 여부와 무관하게 FixedCleanup을 보장합니다.
         /// </summary>
         public void FixedTick()
         {
-            foreach (var system in fixedTickSystems)
+            try
             {
-                system.FixedTick();
+                foreach (var system in fixedTickSystems)
+                {
+                    system.FixedTick();
+                }
             }
+            finally
+            {
+                context?.FlushDestroyQueue();
+                FixedCleanup();
+                context?.FlushDestroyQueue();
+            }
+        }
 
-            context?.FlushDestroyQueue();
+        /// <summary>
+        /// 모든 FixedCleanup System을 실행합니다. FixedTick() 내부에서 자동 호출됩니다.
+        /// </summary>
+        public void FixedCleanup()
+        {
+            foreach (var system in fixedCleanupSystems)
+            {
+                system.FixedCleanup();
+            }
         }
 
         /// <summary>

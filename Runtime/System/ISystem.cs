@@ -24,6 +24,11 @@ namespace OVFL.ECS
         void FixedTick();
     }
 
+    public interface IFixedCleanupSystem : ISystem
+    {
+        void FixedCleanup();
+    }
+
     public interface ITeardownSystem : ISystem
     {
         void Teardown();

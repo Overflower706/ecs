@@ -2,6 +2,78 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-04-06
+
+### Added
+- **이벤트 시스템 추가** — `EventComponent`, `EventQueueComponent`, `EventMetadataComponent`, `EventPublisherSystem`, `EventCleanupSystem`, `EventExtensions`가 `OVFL.ECS` 패키지에 편입됨
+  ```csharp
+  // 이벤트 정의
+  public class MyEvent : EventComponent { }
+
+  // 이벤트 발행
+  queue.Enqueue(new MyEvent());
+
+  // 이벤트 처리
+  Context.ProcessEvents<MyEvent>((entity, e) => { ... });
+  ```
+  - `EventPublisherSystem`을 시스템 목록 **맨 앞**, `EventCleanupSystem`을 **맨 뒤**에 등록
+  - 현 프레임에서 Enqueue된 이벤트는 다음 프레임에 발행됨 (순환 이벤트 체인 방지)
+- **`IFixedCleanupSystem` 인터페이스 추가** — FixedTick 주기의 정리 작업을 위한 전용 인터페이스
+  ```csharp
+  public class MyFixedCleanupSystem : IFixedCleanupSystem
+  {
+      public Context Context { get; set; }
+      public void FixedCleanup() { ... }
+  }
+  ```
+
+### Changed
+- **`Systems.Tick()` — Cleanup 실행 보장** — Tick 도중 예외가 발생해도 Cleanup이 반드시 실행됨 (try/finally 내재화)
+- **`Systems.FixedTick()` — FixedCleanup 실행 보장** — FixedTick 도중 예외가 발생해도 FixedCleanup이 반드시 실행됨
+  - 기존: ECSRunner에서 try/finally로 직접 보장해야 했음
+  - 변경: `Systems`가 내부적으로 보장하므로 ECSRunner 구현 단순화 가능
+    ```csharp
+    // Before: ECSRunner에서 try/finally 필요
+    private void Update()
+    {
+        try { systems.Tick(); }
+        finally { systems.Cleanup(); }
+    }
+
+    // After: 단순 호출로 충분
+    private void Update() { systems.Tick(); }
+    ```
+
+## [1.6.0] - 2026-04-06
+
+### Removed (Breaking Changes)
+- **Systems() 기본 생성자 제거** — `Systems(Context context)` 생성자를 사용하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var systems = new Systems();
+  systems.SetContext(context);
+  
+  // After
+  var systems = new Systems(context);
+  ```
+- **Systems.SetContext() 제거** — 생성자로 Context를 전달하세요.
+- **Context.GetEntities() 제거** — `Context.AllEntities`를 사용하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var entities = context.GetEntities();
+  
+  // After
+  var entities = context.AllEntities;
+  ```
+- **Context.GetEntitiesWithComponent\<T\>() 제거** — `AllEntities`를 직접 순회하세요.
+  ```csharp
+  // Before (더 이상 동작하지 않음)
+  var players = context.GetEntitiesWithComponent<PlayerComponent>();
+  
+  // After
+  var players = context.AllEntities.Where(e => e.HasComponent<PlayerComponent>());
+  ```
+
 ## [1.5.6] - 2026-04-06
 
 ### Fixed
@@ -36,36 +108,6 @@ All notable changes to this project will be documented in this file.
 - **AllEntities 필터링** — `IsActive=false`인 엔티티(삭제 예약된 엔티티) 제외
 - **IsAlive() 조기 반환** — `IsActive=false`이면 즉시 false 반환
 - **Systems.Tick() / Systems.FixedTick()** — 모든 시스템 실행 후 `FlushDestroyQueue()` 자동 호출
-
-## [1.6.0] - 2026-04-06
-
-### Removed (Breaking Changes)
-- **Systems() 기본 생성자 제거** — `Systems(Context context)` 생성자를 사용하세요.
-  ```csharp
-  // Before (더 이상 동작하지 않음)
-  var systems = new Systems();
-  systems.SetContext(context);
-  
-  // After
-  var systems = new Systems(context);
-  ```
-- **Systems.SetContext() 제거** — 생성자로 Context를 전달하세요.
-- **Context.GetEntities() 제거** — `Context.AllEntities`를 사용하세요.
-  ```csharp
-  // Before (더 이상 동작하지 않음)
-  var entities = context.GetEntities();
-  
-  // After
-  var entities = context.AllEntities;
-  ```
-- **Context.GetEntitiesWithComponent\<T\>() 제거** — `AllEntities`를 직접 순회하세요.
-  ```csharp
-  // Before (더 이상 동작하지 않음)
-  var players = context.GetEntitiesWithComponent<PlayerComponent>();
-  
-  // After
-  var players = context.AllEntities.Where(e => e.HasComponent<PlayerComponent>());
-  ```
 
 ## [1.5.4] - 2026-03-10
 
