@@ -8,6 +8,8 @@ namespace OVFL.ECS
         private int[] _entityIndices = new int[1024]; // Sparse 배열
         private readonly List<Entity> _entities = new(); // Dense 배열
         private readonly List<Entity> _pendingDestroy = new();
+        private readonly Queue<Action> _pendingEvents = new();
+        private readonly Queue<Action> _pendingFixedEvents = new();
 
         public IEnumerable<Entity> AllEntities
         {
@@ -113,5 +115,31 @@ namespace OVFL.ECS
             if (entity.ID < 0 || entity.ID >= _generations.Count) return false;
             return _generations[entity.ID] == entity.Generation;
         }
+
+        /// <summary>현재 활성 상태인 Entity 수를 반환합니다.</summary>
+        public int EntityCount => _entities.Count - _pendingDestroy.Count;
+
+        /// <summary>모든 Entity를 삭제 예약합니다. FlushDestroyQueue() 또는 Systems.Cleanup() 호출 시 최종 삭제됩니다.</summary>
+        public void DestroyAllEntities()
+        {
+            foreach (var entity in _entities)
+            {
+                if (entity.IsActive)
+                    DestroyEntity(entity);
+            }
+        }
+
+        public void RaiseEvent<T>(T eventComponent) where T : EventComponent
+        {
+            _pendingEvents.Enqueue(() => this.CreateEvent(eventComponent));
+        }
+
+        public void RaiseFixedEvent<T>(T eventComponent) where T : EventComponent
+        {
+            _pendingFixedEvents.Enqueue(() => this.CreateEvent(eventComponent, isFixed: true));
+        }
+
+        internal Queue<Action> PendingEvents => _pendingEvents;
+        internal Queue<Action> PendingFixedEvents => _pendingFixedEvents;
     }
 }

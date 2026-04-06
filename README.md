@@ -141,7 +141,7 @@ var systems = new Systems(context)
 systems.Setup();    // 초기화
 systems.Tick();     // 매 프레임
 systems.Cleanup();  // 정리
-systems.Teardown(); // 마무리 (자동으로 UnregisterAll 호출)
+systems.Teardown(); // 마무리 (자동으로 RemoveAllSystems 호출)
 ```
 
 - System을 일괄적으로 관리하기 위한 클래스입니다.

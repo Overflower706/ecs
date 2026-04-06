@@ -2,6 +2,83 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.1] - 2026-04-07
+
+### Added
+- **`Context.EntityCount` 프로퍼티 추가** — 현재 활성 Entity 수 반환
+  ```csharp
+  int count = context.EntityCount;
+  ```
+
+- **`Context.DestroyAllEntities()` 메서드 추가** — 모든 Entity를 일괄 삭제 예약
+  ```csharp
+  context.DestroyAllEntities();
+  context.FlushDestroyQueue(); // 또는 systems.Cleanup() 자동 처리
+  ```
+
+### Tests
+- `ContextTests`에 EntityCount / DestroyAllEntities 테스트 추가
+
+## [1.9.0] - 2026-04-07
+
+### Added
+- **FixedEvent 시스템 추가** — `RaiseFixedEvent<T>()`, `FixedEventPublisherSystem`, `FixedEventCleanupSystem`
+  ```csharp
+  // FixedUpdate 주기 이벤트 발행
+  context.RaiseFixedEvent(new MyEvent());
+  
+  // 시스템 등록 순서
+  systems.AddSystem(new FixedEventPublisherSystem()); // FixedTick 목록 맨 앞
+  systems.AddSystem(new FixedEventCleanupSystem());   // FixedCleanup 목록 맨 뒤
+  ```
+  - Update 이벤트와 FixedUpdate 이벤트가 독립적으로 관리됨
+  - `EventCleanupSystem`은 일반 이벤트만, `FixedEventCleanupSystem`은 FixedEvent만 정리
+
+### Changed
+- **`EventMetadataComponent.IsFixed` 추가** — Event Entity가 Update/FixedUpdate 중 어느 주기로 발행됐는지 구분
+- **`EventCleanupSystem`** — `IsFixed=false`인 이벤트 Entity만 정리하도록 변경 (FixedEvent와 격리)
+
+### Tests
+- `EventSystemTests` 추가 — 이벤트 시스템 전체 커버리지
+  - `RaiseEvent` / `RaiseFixedEvent` Publish 전/후 동작 검증
+  - `ProcessEvents` / `ProcessEventsWhere` 필터링 검증
+  - Cleanup 격리 검증 (일반 Event ↔ FixedEvent 서로 건드리지 않음)
+  - `EventMetadataComponent.IsFixed` 플래그 검증
+
+## [1.8.0] - 2026-04-06
+
+### Changed (Breaking)
+- **`EventQueueComponent` 제거** — 이벤트 예약 API가 `Context`로 이동됨
+  ```csharp
+  // Before
+  eventQueueEntity.GetComponent<EventQueueComponent>().Enqueue(new MyEvent());
+
+  // After
+  context.RaiseEvent(new MyEvent());
+  ```
+  - `EventPublisherSystem`이 `EventQueueComponent` 엔티티 탐색 대신 `Context` 내부 큐를 직접 사용
+  - `EventExtensions.CreateEvent` — `internal`로 변경 (구현 세부사항)
+
+## [1.7.3] - 2026-04-06
+
+### Changed (Breaking)
+- **`UnregisterSystem()` → `RemoveSystem()`** — `AddSystem`과 대칭되는 이름으로 변경
+- **`UnregisterAll()` → `RemoveAllSystems()`** — 일관성 유지
+
+## [1.7.2] - 2026-04-06
+
+### Changed
+- **Systems 예외 격리** — 한 System에서 예외가 발생해도 이후 System들이 계속 실행됨
+  - 기존: 예외 발생 시 해당 프레임의 나머지 System이 모두 스킵됨
+  - 변경: 각 System 호출을 try-catch로 감싸 예외를 `Debug.LogException`으로 기록 후 계속 진행
+  - `Setup`, `Tick`, `Cleanup`, `FixedTick`, `FixedCleanup`, `Teardown` 모든 라이프사이클에 적용
+
+### Tests
+- `Setup_WhenOneSystemThrows_OtherSystemsShouldStillRun` 추가
+- `Tick_WhenOneSystemThrows_OtherSystemsShouldStillRun` 추가
+- `Cleanup_WhenOneSystemThrows_OtherSystemsShouldStillRun` 추가
+- `Teardown_WhenOneSystemThrows_OtherSystemsShouldStillRun` 추가
+
 ## [1.7.0] - 2026-04-06
 
 ### Added

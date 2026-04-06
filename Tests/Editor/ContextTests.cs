@@ -156,5 +156,70 @@ namespace Test
             Assert.IsNull(_context.GetEntity(-1));
             Assert.IsNull(_context.GetEntity(9999));
         }
+
+        // ───────────────────────────────────────────
+        // EntityCount
+        // ───────────────────────────────────────────
+
+        [Test]
+        public void EntityCount_ShouldReturnZero_WhenNoEntities()
+        {
+            Assert.AreEqual(0, _context.EntityCount);
+        }
+
+        [Test]
+        public void EntityCount_ShouldReturnActiveEntityCount()
+        {
+            _context.CreateEntity();
+            _context.CreateEntity();
+            _context.CreateEntity();
+
+            Assert.AreEqual(3, _context.EntityCount);
+        }
+
+        [Test]
+        public void EntityCount_ShouldDecrease_AfterDestroyEntity()
+        {
+            var e1 = _context.CreateEntity();
+            _context.CreateEntity();
+
+            _context.DestroyEntity(e1);
+
+            Assert.AreEqual(1, _context.EntityCount);
+        }
+
+        // ───────────────────────────────────────────
+        // DestroyAllEntities
+        // ───────────────────────────────────────────
+
+        [Test]
+        public void DestroyAllEntities_ShouldSetEntityCountToZero()
+        {
+            _context.CreateEntity();
+            _context.CreateEntity();
+            _context.CreateEntity();
+
+            _context.DestroyAllEntities();
+
+            Assert.AreEqual(0, _context.EntityCount);
+        }
+
+        [Test]
+        public void DestroyAllEntities_ShouldClearAllEntities_AfterFlush()
+        {
+            _context.CreateEntity();
+            _context.CreateEntity();
+
+            _context.DestroyAllEntities();
+            _context.FlushDestroyQueue();
+
+            Assert.IsFalse(System.Linq.Enumerable.Any(_context.AllEntities));
+        }
+
+        [Test]
+        public void DestroyAllEntities_OnEmptyContext_ShouldNotThrow()
+        {
+            Assert.DoesNotThrow(() => _context.DestroyAllEntities());
+        }
     }
 }
