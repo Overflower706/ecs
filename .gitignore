@@ -1,5 +1,10 @@
 # Unity Package용 .gitignore
 
+# Claude Code 설정 파일 (로컬 전용)
+CLAUDE.md
+CLAUDE.md.meta
+.claude/
+
 # GitHub 폴더 (패키지에 불필요)
 .github/
 
