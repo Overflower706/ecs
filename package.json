@@ -1,6 +1,6 @@
 {
     "name": "com.ovfl.ecs",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "displayName": "OVFL ECS",
     "description": "학습용 ECS 구현체",
     "unity": "6000.1",

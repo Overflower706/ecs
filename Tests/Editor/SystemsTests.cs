@@ -125,7 +125,7 @@ namespace Test
         }
 
         [Test]
-        public void CleanupSystem_ShouldRunWhenCleanupCalled()
+        public void CleanupSystem_ShouldRunWhenTickCalled()
         {
             var context = new Context();
             var systems = new Systems(context);
@@ -133,9 +133,7 @@ namespace Test
 
             systems.AddSystem(mockSys);
             systems.Tick();
-            systems.Cleanup();
             systems.Tick();
-            systems.Cleanup();
 
             Assert.AreEqual(2, mockSys.TickCount);
             Assert.AreEqual(2, mockSys.CleanupCount);
