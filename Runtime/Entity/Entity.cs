@@ -69,7 +69,7 @@ namespace OVFL.ECS
 
             return left.Equals(right);
         }
-        public static bool operator !=(Entity left, Entity right) => !left.Equals(right);
+        public static bool operator !=(Entity left, Entity right) => !(left == right);
         public override string ToString() => $"Entity({ID}:{Generation})";
     }
 }

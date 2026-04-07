@@ -5,7 +5,7 @@ namespace OVFL.ECS
 {
     public class Systems
     {
-        private Context context;
+        private readonly Context context;
         private readonly List<ISystem> allSystems = new();
         private readonly List<ISetupSystem> setupSystems = new();
         private readonly List<ITickSystem> tickSystems = new();
@@ -164,6 +164,7 @@ namespace OVFL.ECS
                 catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
 
+            context?.FlushDestroyQueue();
             RemoveAllSystems();
         }
     }

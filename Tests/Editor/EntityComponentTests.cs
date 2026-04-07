@@ -110,5 +110,17 @@ namespace Test
         {
             Assert.IsFalse(Entity.Null.IsActive);
         }
+
+        [Test]
+        public void EntityOperator_Equality_NullSafety()
+        {
+            var e1 = new Entity(0, 1);
+
+            Assert.IsTrue(e1 != null);
+            Assert.IsFalse(e1 == null);
+            Assert.IsTrue(null != e1);
+            Assert.IsFalse(null == e1);
+            Assert.IsTrue((Entity)null == null);
+        }
     }
 }

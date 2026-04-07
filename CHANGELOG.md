@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.2] - 2026-04-07
+
+### Fixed
+- **`Entity.operator !=` null 안전성 버그 수정** — `left`가 null일 때 `NullReferenceException` 발생하던 문제 수정
+  ```csharp
+  // 수정 전: !left.Equals(right) → left가 null이면 크래시
+  // 수정 후: !(left == right)
+  ```
+- **`Systems.Teardown()` 이후 `FlushDestroyQueue` 추가** — Teardown 중 `DestroyEntity()` 호출 시 flush되지 않던 문제 수정
+
+### Changed
+- `Systems.context` 필드에 `readonly` 추가
+
+### Tests
+- `EntityComponentTests`에 `operator ==`, `!=` null 안전성 테스트 추가
+
 ## [1.9.1] - 2026-04-07
 
 ### Added
