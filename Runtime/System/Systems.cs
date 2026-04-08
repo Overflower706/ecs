@@ -164,6 +164,7 @@ namespace OVFL.ECS
                 catch (Exception e) { UnityEngine.Debug.LogException(e); }
             }
             context?.FlushDestroyQueue();
+            RemoveAllSystems();
         }
     }
 }
