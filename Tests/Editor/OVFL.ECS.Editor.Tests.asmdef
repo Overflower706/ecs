@@ -2,7 +2,7 @@
     "name": "OVFL.ECS.Editor.Tests",
     "rootNamespace": "OVFL.ECS.Test",
     "references": [
-        "OVFL.ECS",
+        "OVFL.ECS.Runtime",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

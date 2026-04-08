@@ -8,8 +8,6 @@ namespace OVFL.ECS
         private int[] _entityIndices = new int[1024]; // Sparse 배열
         private readonly List<Entity> _entities = new(); // Dense 배열
         private readonly List<Entity> _pendingDestroy = new();
-        private readonly Queue<Action> _pendingEvents = new();
-        private readonly Queue<Action> _pendingFixedEvents = new();
 
         public IEnumerable<Entity> AllEntities
         {
@@ -128,18 +126,5 @@ namespace OVFL.ECS
                     DestroyEntity(entity);
             }
         }
-
-        public void RaiseEvent<T>(T eventComponent) where T : EventComponent
-        {
-            _pendingEvents.Enqueue(() => this.CreateEvent(eventComponent));
-        }
-
-        public void RaiseFixedEvent<T>(T eventComponent) where T : EventComponent
-        {
-            _pendingFixedEvents.Enqueue(() => this.CreateEvent(eventComponent, isFixed: true));
-        }
-
-        internal Queue<Action> PendingEvents => _pendingEvents;
-        internal Queue<Action> PendingFixedEvents => _pendingFixedEvents;
     }
 }

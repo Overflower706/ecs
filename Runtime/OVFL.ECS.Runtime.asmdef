@@ -1,5 +1,5 @@
 {
-    "name": "OVFL.ECS",
+    "name": "OVFL.ECS.Runtime",
     "rootNamespace": "OVFL.ECS",
     "references": [],
     "includePlatforms": [],

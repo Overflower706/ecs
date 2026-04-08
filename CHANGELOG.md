@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2026-04-08
+
+### Removed (Breaking Changes)
+- **이벤트 시스템 전체 제거** — v1.7.0~v1.9.0에서 추가된 이벤트 시스템을 패키지에서 분리. 게임 프로젝트가 각자 이벤트 레이어를 구현하는 방향으로 전환.
+  - `EventComponent` 제거
+  - `EventMetadataComponent` 제거
+  - `EventPublisherSystem` / `FixedEventPublisherSystem` 제거
+  - `EventCleanupSystem` / `FixedEventCleanupSystem` 제거
+  - `EventExtensions` 제거
+  - `Context.RaiseEvent<T>()` 제거
+  - `Context.RaiseFixedEvent<T>()` 제거
+  - `Context.ProcessEvents<T>()` / `ProcessEventsWhere<T>()` 제거
+  - `EventSystemTests` 제거
+
+### Changed
+- **Assembly Definition 이름 변경**: `OVFL.ECS` → `OVFL.ECS.Runtime`
+  - 테스트 asmdef의 references도 `OVFL.ECS.Runtime`으로 갱신
+
 ## [1.9.2] - 2026-04-07
 
 ### Fixed
